@@ -1,13 +1,19 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { HeaderComponent } from './shared/header/header.comonent';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [CommonModule, RouterModule, HeaderComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class AppComponent {
-  title = signal('Scene It');
+  searchQuery = signal('');
+
+  onSearch(query: string) {
+    this.searchQuery.set(query);
+  }
 }
