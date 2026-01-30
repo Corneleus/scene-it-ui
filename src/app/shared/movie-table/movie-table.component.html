@@ -1,0 +1,26 @@
+<table class="movie-table">
+  <thead>
+    <tr>
+      <th>Poster</th>
+      <th>Title</th>
+      <th>Genre</th>
+      <th>Year</th>
+      <th>Rated</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let movie of movies">
+      <td>
+        <img
+          class="poster"
+          [src]="movie.poster ? movie.poster : '/assets/images/not-found-image.jpg'"
+          [alt]="movie.title"
+        />
+      </td>
+      <td>{{ movie.title }}</td>
+      <td>{{ movie.genre }}</td>
+      <td>{{ movie.year }}</td>
+      <td>{{ movie.rated }}</td>
+    </tr>
+  </tbody>
+</table>

@@ -1,58 +1,45 @@
-import { Component, signal, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MovieService } from './movies.service';
+// src/app/features/movies/movies.page.ts
+// Standalone component to display the Movies page and fetch data from backend API
+
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common'; // Needed for *ngIf and *ngFor
+import { HttpClient } from '@angular/common/http';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { Movie } from '../../models/movies.model';
 
-
 @Component({
-  standalone: true,
-  selector: 'app-movies',
+  //selector: 'app-movies',
+  standalone: true, // This component is standalone (Angular 21 style)
+  imports: [CommonModule], // Import CommonModule for structural directives
   templateUrl: './movies.page.html',
-  styleUrls: ['./movies.page.scss'],
-  imports: [CommonModule, ]
+  styleUrls: ['./movies.page.scss']
 })
 export class MoviesPage {
-  movies = signal<Movie[]>([]);
-  filteredMovies = signal<Movie[]>([]);
-  searchQuery = signal(''); // connected to header
-  isLoading = signal(false);
-  error = signal<string | null>(null);
+  movies: Movie[] = []; // Array to store movies from API
+  loading = true;       // Loading state
+  error = '';           // Error message
 
-  constructor(private movieService: MovieService) {
-    this.loadMovies();
-
-    // Re-filter whenever searchQuery or movies change
-    effect(() => {
-      const query = this.searchQuery().toLowerCase();
-      const allMovies = this.movies();
-      if (!query) {
-        this.filteredMovies.set(allMovies);
-      } else {
-        this.filteredMovies.set(
-          allMovies.filter(m => m.title?.toLowerCase().includes(query))
-        );
-      }
-    });
+  // Inject HttpClient to make API calls
+  constructor(private http: HttpClient) {
+    this.fetchMovies();
   }
 
-  loadMovies(): void {
-    this.isLoading.set(true);
-    this.error.set(null);
-
-    this.movieService.getMovies().subscribe({
-      next: data => {
-        this.movies.set(data);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.error.set('Failed to load movies');
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  // Called from header when search is submitted
-  onSearch(query: string) {
-    this.searchQuery.set(query);
+  // Method to fetch movies from backend API
+  fetchMovies() {
+    this.http.get<Movie[]>('https://localhost:44383/api/Movies')
+      .pipe(
+        catchError(err => {
+          // If error occurs, display it
+          console.error('API Error:', err);
+          this.error = 'Failed to load movies. Make sure backend is running.';
+          this.loading = false;
+          return of([]); // Return empty array on error
+        })
+      )
+      .subscribe(data => {
+        this.movies = data; // Populate movies array
+        this.loading = false; // Stop loading indicator
+      });
   }
 }

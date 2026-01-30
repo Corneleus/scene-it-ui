@@ -6,12 +6,12 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: HomePage
-  },
-  {
-    path: 'movies',
     component: MoviesPage
   },
+  // {
+  //   path: 'movies',
+  //   component: MoviesPage
+  // },
   {
     path: '**', // fallback for unknown routes
     redirectTo: ''
