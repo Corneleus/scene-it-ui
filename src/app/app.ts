@@ -1,8 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { HeaderComponent } from './shared/header/header.component';
-import { MovieTableComponent } from './shared/movie-table/movie-table.component';
 import { CommonModule } from '@angular/common';
+import { MovieTableComponent } from './features/movies/movie-table/movie-table.component';
+import { HeaderComponent } from './shared/header/header.component';
+import { FooterComponent } from './shared/footer/footer.component';
 
 @Component({
   selector: 'app-root',
@@ -12,12 +13,12 @@ import { CommonModule } from '@angular/common';
 
   // Import only what this component actually uses
   imports: [
-    RouterModule,      // Enables <router-outlet>
-    HeaderComponent,   // Displays the app header
-    MovieTableComponent,
+    RouterModule, // Enables <router-outlet>
+    HeaderComponent,
     CommonModule,
-  
-  ],
+    FooterComponent,
+    MovieTableComponent
+],
 
   // Root layout template
   templateUrl: './app.html',

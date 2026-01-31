@@ -1,19 +1,10 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MoviesPage } from './features/movies/movies.page';
-import { HomePage } from './features/home/features/home/home/home.page';
+import { AppComponent } from './app';
 
 export const routes: Routes = [
-  {
-    path: '',
-    pathMatch: 'full',
-    component: MoviesPage
-  },
-  // {
-  //   path: 'movies',
-  //   component: MoviesPage
-  // },
-  {
-    path: '**', // fallback for unknown routes
-    redirectTo: ''
-  }
+  //{ path: '', component: AppComponent,  pathMatch: 'full' },       // Landing page
+  { path: 'movies', component: MoviesPage },   // Movies page
+  { path: '**', redirectTo: '' } // landing page
 ];

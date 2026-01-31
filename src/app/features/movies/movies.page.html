@@ -1,28 +1,7 @@
-<!-- src/app/features/movies/movies.page.html -->
-<!-- Table view for movies -->
+<main class="landing-page">
+  <h1>Welcome to SceneIt Movies!</h1>
+  <p>Check out our movie collection:</p>
 
-<div If="loading">Loading movies...</div>
-<div If="error" class="error">{{ error }}</div>
-
-<table *ngIf="!loading && !error">
-  <thead>
-    <tr>
-      <th>Title</th>
-      <th>Year</th>
-      <th>Genre</th>
-      <th>Director</th>
-      <th>Actors</th>
-      <th>Plot</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let movie of movies">
-      <td>{{ movie.title }}</td>
-      <td>{{ movie.year }}</td>
-      <td>{{ movie.genre }}</td>
-      <td>{{ movie.director }}</td>
-      <td>{{ movie.actors }}</td>
-      <td>{{ movie.plot }}</td>
-    </tr>
-  </tbody>
-</table>
+  <!-- Render movie table immediately -->
+  <app-movie-table></app-movie-table>
+</main>

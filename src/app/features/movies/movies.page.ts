@@ -7,11 +7,12 @@ import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Movie } from '../../models/movies.model';
+import { MovieTableComponent } from './movie-table/movie-table.component';
 
 @Component({
-  //selector: 'app-movies',
+  selector: 'app-movies',
   standalone: true, // This component is standalone (Angular 21 style)
-  imports: [CommonModule], // Import CommonModule for structural directives
+  imports: [CommonModule , MovieTableComponent], // Import CommonModule for structural directives
   templateUrl: './movies.page.html',
   styleUrls: ['./movies.page.scss']
 })

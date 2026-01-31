@@ -1,14 +1,20 @@
 <nav class="navbar">
-  <div class="navbar-left">
-    <a routerLink="/" class="brand">SceneItApp</a>
-    <a routerLink="/" routerLinkActive="active">Movies</a>
+  <div class="navbar-brand">
+    <a routerLink="/" class="brand">SceneIt</a>
   </div>
 
-  <div class="navbar-right">
+  <ul class="navbar-links">
+    <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a></li>
+    <li><a routerLink="/movies" routerLinkActive="active">Movies</a></li>
+  </ul>
+
+  <form class="navbar-search" (submit)="onSearch($event)">
     <input
       type="text"
       placeholder="Search movies..."
       [(ngModel)]="searchQuery"
+      name="search"
     />
-  </div>
+    <button type="submit">Search</button>
+  </form>
 </nav>

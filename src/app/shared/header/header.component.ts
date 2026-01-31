@@ -1,22 +1,26 @@
+// src/app/shared/header/header.component.ts
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // <-- Import FormsModule for ngModel
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // ✅ Needed for ngModel
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule], // <-- Include FormsModule
+  imports: [
+    RouterModule,
+    CommonModule,
+    FormsModule // ✅ Add this
+  ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
-  // Holds the search input value
   searchQuery = '';
 
-  // Triggered when the search form is submitted
-  onSearch() {
+  onSearch(event: Event) {
+    event.preventDefault();
     console.log('Search query:', this.searchQuery);
-    // You can emit an event or filter your movie list here
+    // Optional: You can route to a search page or filter movies here
   }
 }
