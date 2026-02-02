@@ -1,5 +1,5 @@
 // src/app/features/movies/movie-table.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MovieService } from '../movies.service';
 import { Movie } from '../../../models/movies.model';
@@ -13,8 +13,10 @@ import { Movie } from '../../../models/movies.model';
   styleUrls: ['./movie-table.component.scss']
 })
 export class MovieTableComponent implements OnInit {
-  movies: Movie[] = [];
+  
 
+  @Input() movies: Movie[] = []; // <-- THIS IS REQUIRED FOR [movies] BINDING
+  
   constructor(private movieService: MovieService) {}
 
   ngOnInit(): void {

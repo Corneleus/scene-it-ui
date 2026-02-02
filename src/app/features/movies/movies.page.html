@@ -1,7 +1,7 @@
-<main class="landing-page">
-  <h1>Welcome to SceneIt Movies!</h1>
-  <p>Check out our movie collection:</p>
+<!-- src/app/features/movies/movies.page.html -->
 
-  <!-- Render movie table immediately -->
-  <app-movie-table></app-movie-table>
-</main>
+<div class="movies-page">
+  <!-- Movie table -->
+  <app-movie-table [movies]="movies()"></app-movie-table>
+
+</div>

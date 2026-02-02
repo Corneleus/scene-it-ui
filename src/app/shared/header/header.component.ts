@@ -1,26 +1,36 @@
-// src/app/shared/header/header.component.ts
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, signal, effect } from '@angular/core';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // ✅ Needed for ngModel
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
-    RouterModule,
-    CommonModule,
-    FormsModule // ✅ Add this
-  ],
+  imports: [CommonModule, RouterModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
-  searchQuery = '';
+  /** Search box value */
+  searchQuery = signal('');
 
-  onSearch(event: Event) {
-    event.preventDefault();
-    console.log('Search query:', this.searchQuery);
-    // Optional: You can route to a search page or filter movies here
+  /** Dynamic title shown in the header */
+  title = signal('Welcome to SceneIt');
+
+  constructor(private router: Router) {
+    // Use a signal effect to react to route changes
+    effect(() => {
+      // Subscribe reactively to NavigationEnd events
+      this.router.events
+        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+        .subscribe(event => {
+          // Update the title signal automatically
+          this.title.set(
+            event.urlAfterRedirects.startsWith('/movies')
+              ? 'SceneIt Movies'
+              : 'Welcome to SceneIt'
+          );
+        });
+    });
   }
 }

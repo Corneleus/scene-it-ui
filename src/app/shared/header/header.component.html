@@ -7,14 +7,4 @@
     <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a></li>
     <li><a routerLink="/movies" routerLinkActive="active">Movies</a></li>
   </ul>
-
-  <form class="navbar-search" (submit)="onSearch($event)">
-    <input
-      type="text"
-      placeholder="Search movies..."
-      [(ngModel)]="searchQuery"
-      name="search"
-    />
-    <button type="submit">Search</button>
-  </form>
 </nav>
