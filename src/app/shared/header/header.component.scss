@@ -1,0 +1,46 @@
+/* Modern Navbar Styling */
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #1a1a1a; /* dark background */
+  font-family: Arial, sans-serif;
+
+  /* Brand (SceneIt) */
+  .navbar-brand {
+    a.brand {
+      color: rgb(79, 0, 128);          /* Brand text in purple */
+      font-size: 1.5rem;      /* Bigger font size for brand */
+      font-weight: bold;
+      text-decoration: none;
+      margin-right: 2rem;     /* Space between brand and links */
+    }
+  }
+
+  /* Links aligned horizontally next to brand */
+  .navbar-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      margin-right: 1.5rem;  /* Space between links */
+
+      a {
+        color: rgb(79, 0, 128);       /* Link color */
+        font-size: 1.125rem; /* Slightly bigger than default */
+        font-weight: 500;
+        text-decoration: none;
+
+        &.active {
+          text-decoration: underline;
+        }
+
+        &:hover {
+          color: #ef1d1d;    /* Lighter purple on hover */
+        }
+      }
+    }
+  }
+}
