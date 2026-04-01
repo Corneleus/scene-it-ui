@@ -1,10 +1,8 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
-import { MoviesPage } from './features/movies/movies.page';
-import { AppComponent } from './app';
+import { HomePageComponent } from './features/home/home.page';
+import { MoviesPage } from './features/movies/movie-page/movies.page';
 
 export const routes: Routes = [
-  //{ path: '', component: AppComponent,  pathMatch: 'full' },       // Landing page
-  { path: 'movies', component: MoviesPage },   // Movies page
-  { path: '**', redirectTo: '' } // landing page
+  { path: '', component: HomePageComponent, pathMatch: 'full' }, // Landing page
+  { path: 'movies', component: MoviesPage }                       // Movies page
 ];

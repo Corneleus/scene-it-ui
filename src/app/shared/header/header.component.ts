@@ -24,7 +24,7 @@ export class HeaderComponent {
       this.router.events
         .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
         .subscribe(event => {
-          // Update the title signal automatically
+          // Update the title signal automatically  bot used atm need to revisit Cory Caswell
           this.title.set(
             event.urlAfterRedirects.startsWith('/movies')
               ? 'SceneIt Movies'

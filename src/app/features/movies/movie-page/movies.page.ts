@@ -2,22 +2,24 @@
 // Standalone component to display the Movies page and fetch data from backend API
 // Simplified version: no error handling, only loading and movies display
 
-import { Component, signal, effect } from '@angular/core';
+import { Component, signal, effect, computed, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Movie } from '../../models/movies.model';
-import { MovieTableComponent } from './movie-table/movie-table.component';
+import { Movie } from '../../../models/movies.model';
+import { MovieTableComponent } from '../movie-table/movie-table.component';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, single } from 'rxjs/operators';
+import { AddMovie } from "../add-movie/add-movie";
 
 @Component({
   selector: 'app-movies',
   standalone: true,
   imports: [
-    CommonModule,       
+    CommonModule,
     MovieTableComponent,
-    RouterModule        
-  ],
+    RouterModule,
+    AddMovie
+],
   templateUrl: './movies.page.html',
   styleUrls: ['./movies.page.scss']
 })

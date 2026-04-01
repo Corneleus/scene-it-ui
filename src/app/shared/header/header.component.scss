@@ -1,56 +1,45 @@
+/* Modern Navbar Styling */
 .navbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  background-color: #343a40;
-  color: #fff;
+  padding: 0.75rem 1.5rem;
+  background-color: #1a1a1a; /* dark background */
+  font-family: Arial, sans-serif;
 
-  .navbar-brand .brand {
-    color: #fff;
-    font-weight: bold;
-    text-decoration: none;
-    font-size: 1.5rem;
+  /* Brand (SceneIt) */
+  .navbar-brand {
+    a.brand {
+      color: rgb(79, 0, 128);          /* Brand text in purple */
+      font-size: 1.5rem;      /* Bigger font size for brand */
+      font-weight: bold;
+      text-decoration: none;
+      margin-right: 2rem;     /* Space between brand and links */
+    }
   }
 
+  /* Links aligned horizontally next to brand */
   .navbar-links {
     display: flex;
     list-style: none;
-    gap: 1rem;
+    margin: 0;
+    padding: 0;
 
-    li a {
-      color: #f8f9fa;
-      text-decoration: none;
-      font-weight: 500;
-      &.active {
-        border-bottom: 2px solid #fff;
-      }
-    }
-  }
+    li {
+      margin-right: 1.5rem;  /* Space between links */
 
-  .navbar-search {
-    display: flex;
-    gap: 0.5rem;
+      a {
+        color: rgb(79, 0, 128);       /* Link color */
+        font-size: 1.125rem; /* Slightly bigger than default */
+        font-weight: 500;
+        text-decoration: none;
 
-    input {
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      border: none;
-      outline: none;
-    }
+        &.active {
+          text-decoration: underline;
+        }
 
-    button {
-      padding: 0.25rem 0.75rem;
-      border: none;
-      border-radius: 4px;
-      background-color: #ffc107;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-
-      &:hover {
-        background-color: #e0a800;
+        &:hover {
+          color: #ef1d1d;    /* Lighter purple on hover */
+        }
       }
     }
   }

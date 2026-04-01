@@ -1,0 +1,14 @@
+<div class="overlay" (click)="onClose()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Add Movie</h2>
+
+    <input [formControl]="movieForm.controls.title" placeholder="Title" />
+    <input [formControl]="movieForm.controls.year" placeholder="Year" />
+
+    <div class="actions">
+      <!-- <button (click)="searchOmdbApi()">Search OMDB</button> -->
+      <button (click)="onSave()">Save</button>
+      <button (click)="onClose()">Cancel</button>
+    </div>
+  </div>
+</div>
