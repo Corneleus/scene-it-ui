@@ -23,6 +23,25 @@
   text-transform: uppercase;
 }
 
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.sort-button span {
+  min-width: 0.8rem;
+  color: var(--accent-cool);
+}
+
 .movie-table tbody tr {
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
