@@ -2,6 +2,9 @@ import { Component, computed, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Movie } from '../../../models/movies.model';
 
+type SortColumn = 'title' | 'genre' | 'year' | 'rated';
+type SortDirection = 'asc' | 'desc';
+
 @Component({
   selector: 'app-movie-table',
   standalone: true,
@@ -11,11 +14,34 @@ import { Movie } from '../../../models/movies.model';
 })
 export class MovieTableComponent {
   movies = input<Movie[]>([]);
+  sortColumn = signal<SortColumn>('title');
+  sortDirection = signal<SortDirection>('asc');
 
   // ✅ Multi-select state (track selected movie IDs)
   selectedMovieIds = signal<Set<number>>(new Set());
 
   // ✅ Computed derived state for template
+  sortedMovies = computed(() => {
+    const column = this.sortColumn();
+    const direction = this.sortDirection();
+    const directionMultiplier = direction === 'asc' ? 1 : -1;
+
+    return [...this.movies()].sort((left, right) => {
+      const leftValue = this.getSortableValue(left, column);
+      const rightValue = this.getSortableValue(right, column);
+
+      if (leftValue < rightValue) {
+        return -1 * directionMultiplier;
+      }
+
+      if (leftValue > rightValue) {
+        return 1 * directionMultiplier;
+      }
+
+      return 0;
+    });
+  });
+
   selectedMovies = computed(() =>
     this.movies().filter(m => this.selectedMovieIds().has(m.movieId))
   );
@@ -41,5 +67,27 @@ export class MovieTableComponent {
   // ✅ Clear all selections
   clearSelection(): void {
     this.selectedMovieIds.set(new Set());
+  }
+
+  setSort(column: SortColumn): void {
+    if (this.sortColumn() === column) {
+      this.sortDirection.update((direction) => direction === 'asc' ? 'desc' : 'asc');
+      return;
+    }
+
+    this.sortColumn.set(column);
+    this.sortDirection.set('asc');
+  }
+
+  getSortIndicator(column: SortColumn): string {
+    if (this.sortColumn() !== column) {
+      return '';
+    }
+
+    return this.sortDirection() === 'asc' ? '↑' : '↓';
+  }
+
+  private getSortableValue(movie: Movie, column: SortColumn): string {
+    return (movie[column] ?? '').toString().toLocaleLowerCase();
   }
 }
