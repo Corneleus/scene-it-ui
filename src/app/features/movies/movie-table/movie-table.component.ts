@@ -1,4 +1,4 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Movie } from '../../../models/movies.model';
 
@@ -14,8 +14,11 @@ type SortDirection = 'asc' | 'desc';
 })
 export class MovieTableComponent {
   movies = input<Movie[]>([]);
+  deleting = input(false);
   sortColumn = signal<SortColumn>('title');
   sortDirection = signal<SortDirection>('asc');
+  softDeleteRequested = output<number[]>();
+  hardDeleteRequested = output<number[]>();
 
   // ✅ Multi-select state (track selected movie IDs)
   selectedMovieIds = signal<Set<number>>(new Set());
@@ -67,6 +70,24 @@ export class MovieTableComponent {
   // ✅ Clear all selections
   clearSelection(): void {
     this.selectedMovieIds.set(new Set());
+  }
+
+  requestSoftDelete(): void {
+    const selectedIds = Array.from(this.selectedMovieIds());
+    if (selectedIds.length === 0 || this.deleting()) {
+      return;
+    }
+
+    this.softDeleteRequested.emit(selectedIds);
+  }
+
+  requestHardDelete(): void {
+    const selectedIds = Array.from(this.selectedMovieIds());
+    if (selectedIds.length === 0 || this.deleting()) {
+      return;
+    }
+
+    this.hardDeleteRequested.emit(selectedIds);
   }
 
   setSort(column: SortColumn): void {
