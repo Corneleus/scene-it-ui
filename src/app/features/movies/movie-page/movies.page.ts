@@ -26,7 +26,8 @@ export class MoviesPage {
   /** Signal for loading state */
   loading = signal(true);
   deleteInProgress = signal(false);
-  errorMessage = signal('');
+  feedbackMessage = signal('');
+  feedbackTone = signal<'success' | 'error'>('success');
 
   constructor() {
     this.fetchMovies();
@@ -35,21 +36,30 @@ export class MoviesPage {
   /** Fetch movies from backend API */
   fetchMovies(): void {
     this.loading.set(true);
-    this.errorMessage.set('');
     this.movieService.getAllMovies().subscribe({
       next: (movies) => {
         this.movies.set(movies);
         this.loading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Unable to load movies.');
+        this.setFeedback('Unable to load movies.', 'error');
         this.loading.set(false);
       }
     });
   }
 
+  handleMovieAdded(title: string): void {
+    this.setFeedback(`${title} was added to your library.`, 'success');
+    this.fetchMovies();
+  }
+
   softDeleteMovies(ids: number[]): void {
-    this.runDeleteRequest(ids, (id) => this.movieService.softDeleteMovie(id), 'Unable to soft delete selected movies.');
+    this.runDeleteRequest(
+      ids,
+      (id) => this.movieService.softDeleteMovie(id),
+      'Unable to soft delete selected movies.',
+      `${ids.length} movie${ids.length === 1 ? '' : 's'} soft deleted.`
+    );
   }
 
   hardDeleteMovies(ids: number[]): void {
@@ -61,30 +71,42 @@ export class MoviesPage {
       return;
     }
 
-    this.runDeleteRequest(ids, (id) => this.movieService.hardDeleteMovie(id), 'Unable to hard delete selected movies.');
+    this.runDeleteRequest(
+      ids,
+      (id) => this.movieService.hardDeleteMovie(id),
+      'Unable to hard delete selected movies.',
+      `${ids.length} movie${ids.length === 1 ? '' : 's'} permanently deleted.`
+    );
   }
 
   private runDeleteRequest(
     ids: number[],
     deleteRequest: (id: number) => ReturnType<MovieService['softDeleteMovie']>,
-    errorMessage: string
+    errorMessage: string,
+    successMessage: string
   ): void {
     if (ids.length === 0 || this.deleteInProgress()) {
       return;
     }
 
     this.deleteInProgress.set(true);
-    this.errorMessage.set('');
+    this.feedbackMessage.set('');
 
     forkJoin(ids.map((id) => deleteRequest(id))).subscribe({
       next: () => {
         this.deleteInProgress.set(false);
+        this.setFeedback(successMessage, 'success');
         this.fetchMovies();
       },
       error: () => {
-        this.errorMessage.set(errorMessage);
+        this.setFeedback(errorMessage, 'error');
         this.deleteInProgress.set(false);
       }
     });
+  }
+
+  private setFeedback(message: string, tone: 'success' | 'error'): void {
+    this.feedbackMessage.set(message);
+    this.feedbackTone.set(tone);
   }
 }

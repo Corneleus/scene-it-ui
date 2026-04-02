@@ -13,11 +13,17 @@
         <h2>All Movies</h2>
         <p>{{ movies().length }} titles currently loaded</p>
       </div>
-      <app-add-movie (movieAdded)="fetchMovies()"></app-add-movie>
+      <app-add-movie (movieAdded)="handleMovieAdded($event)"></app-add-movie>
     </div>
 
     <p class="status-copy" *ngIf="deleteInProgress()">Updating movie selection...</p>
-    <p class="status-copy error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+    <p
+      class="status-copy"
+      [class.error]="feedbackTone() === 'error'"
+      [class.success]="feedbackTone() === 'success'"
+      *ngIf="feedbackMessage()">
+      {{ feedbackMessage() }}
+    </p>
 
     <app-movie-table
       [movies]="movies()"
