@@ -1,40 +1,88 @@
-/* Table styling */
 .movie-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .movie-table th,
 .movie-table td {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: left;
 }
 
 .movie-table th {
-  background-color: #444;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-/* Zebra striping for even rows */
-.movie-table tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
+.movie-table tbody tr {
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-/* Hover effect for better UX */
 .movie-table tbody tr:hover {
-  background-color: rgba(0, 123, 255, 0.1);
+  background-color: rgba(88, 199, 194, 0.08);
 }
 
-/* Selected row overrides zebra striping */
 .movie-table tbody tr.selected {
-  background-color: rgba(0, 123, 255, 0.3) !important;
+  background: linear-gradient(90deg, rgba(255, 140, 66, 0.16), rgba(88, 199, 194, 0.12));
 }
 
-/* Poster images */
 .movie-table img.poster {
-  width: 50px;
-  height: auto;
+  width: 56px;
+  height: 82px;
+  border-radius: 12px;
+  object-fit: cover;
   display: block;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+}
+
+.movie-table input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.mt-3 {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mt-3 h5 {
+  margin: 0 0 0.75rem;
+  color: var(--surface-strong);
+  font-size: 1rem;
+}
+
+.mt-3 ul {
+  margin: 0 0 0.9rem;
+  padding-left: 1.2rem;
+  color: var(--text-muted);
+}
+
+.mt-3 button {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--surface-strong);
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .movie-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }

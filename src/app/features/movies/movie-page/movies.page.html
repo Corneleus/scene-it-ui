@@ -1,8 +1,21 @@
-<!-- src/app/features/movies/movies.page.html -->
-
 <div class="movies-page">
-  <app-add-movie></app-add-movie>
-  <!-- Movie table -->
-  <app-movie-table [movies]="movies()"></app-movie-table>
+  <section class="page-hero">
+    <p class="eyebrow">Collection</p>
+    <h1>Movie Library</h1>
+    <p class="page-copy">
+      Browse your catalog, review poster art, and manage titles from one clean workspace.
+    </p>
+  </section>
 
+  <section class="content-panel">
+    <div class="panel-toolbar">
+      <div>
+        <h2>All Movies</h2>
+        <p>{{ movies().length }} titles currently loaded</p>
+      </div>
+      <app-add-movie></app-add-movie>
+    </div>
+
+    <app-movie-table [movies]="movies()"></app-movie-table>
+  </section>
 </div>

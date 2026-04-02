@@ -1,46 +1,96 @@
-/* Modern Navbar Styling */
 .navbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  background-color: #1a1a1a; /* dark background */
-  font-family: Arial, sans-serif;
+  gap: 1.5rem;
+  width: min(calc(100% - 2rem), var(--content-width));
+  margin: 1rem auto 0;
+  padding: 1rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(13, 19, 33, 0.72);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-md);
 
-  /* Brand (SceneIt) */
   .navbar-brand {
     a.brand {
-      color: rgb(79, 0, 128);          /* Brand text in purple */
-      font-size: 1.5rem;      /* Bigger font size for brand */
-      font-weight: bold;
+      color: var(--surface-strong);
+      font-family: Aptos Display, "Segoe UI Semibold", sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
       text-decoration: none;
-      margin-right: 2rem;     /* Space between brand and links */
+      white-space: nowrap;
+
+      &::after {
+        content: '.';
+        color: var(--accent);
+      }
     }
   }
 
-  /* Links aligned horizontally next to brand */
   .navbar-links {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     list-style: none;
     margin: 0;
     padding: 0;
+    gap: 0.5rem;
 
-    li {
-      margin-right: 1.5rem;  /* Space between links */
+    li a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.5rem;
+      padding: 0.55rem 0.95rem;
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 999px;
+      transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
 
-      a {
-        color: rgb(79, 0, 128);       /* Link color */
-        font-size: 1.125rem; /* Slightly bigger than default */
-        font-weight: 500;
-        text-decoration: none;
+      &.active {
+        color: var(--surface-strong);
+        background: linear-gradient(135deg, rgba(255, 140, 66, 0.22), rgba(88, 199, 194, 0.18));
+      }
 
-        &.active {
-          text-decoration: underline;
-        }
-
-        &:hover {
-          color: #ef1d1d;    /* Lighter purple on hover */
-        }
+      &:hover {
+        color: var(--surface-strong);
+        background-color: rgba(255, 255, 255, 0.06);
+        transform: translateY(-1px);
       }
     }
+  }
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    border-radius: 26px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .navbar .navbar-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    width: min(calc(100% - 1rem), var(--content-width));
+    padding: 1rem;
+  }
+
+  .navbar .navbar-links {
+    gap: 0.35rem;
+  }
+
+  .navbar .navbar-links li a {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.92rem;
   }
 }

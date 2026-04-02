@@ -1,1 +1,79 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --bg: #0d1321;
+  --bg-elevated: rgba(14, 24, 43, 0.8);
+  --bg-soft: rgba(28, 42, 73, 0.62);
+  --surface: #f4efe6;
+  --surface-strong: #fffaf1;
+  --text: #edf3ff;
+  --text-muted: #a8b6d3;
+  --text-dark: #11203d;
+  --border: rgba(173, 191, 226, 0.16);
+  --accent: #ff8c42;
+  --accent-strong: #ff6b2c;
+  --accent-cool: #58c7c2;
+  --shadow-lg: 0 28px 90px rgba(5, 10, 20, 0.38);
+  --shadow-md: 0 18px 40px rgba(5, 10, 20, 0.22);
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --content-width: 1180px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Aptos, "Segoe UI Variable", "Trebuchet MS", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top, rgba(88, 199, 194, 0.22), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(255, 140, 66, 0.26), transparent 18%),
+    linear-gradient(180deg, #111a2d 0%, #0d1321 56%, #10182b 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 80%);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: Aptos Display, "Segoe UI Semibold", "Franklin Gothic Medium", sans-serif;
+  letter-spacing: -0.03em;
+}
+
+p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}

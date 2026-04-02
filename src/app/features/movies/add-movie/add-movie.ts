@@ -5,7 +5,7 @@ import { AddMovieModalComponent } from '../add-movie-modal/add-movie-modal';
   selector: 'app-add-movie',
   imports: [],
   templateUrl: './add-movie.html',
-  styles: ``,
+  styleUrl: './add-movie.scss',
 })
 export class AddMovie {
   @Output() close = new EventEmitter<void>();  // <-- add this

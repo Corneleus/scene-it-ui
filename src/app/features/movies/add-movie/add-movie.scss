@@ -1,0 +1,16 @@
+.add-movie-button {
+  padding: 0.9rem 1.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #fff8f0;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 18px 30px rgba(255, 107, 44, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-movie-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 36px rgba(255, 107, 44, 0.34);
+}
