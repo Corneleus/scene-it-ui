@@ -11,7 +11,8 @@
 }
 
 .modal {
-  width: min(100%, 430px);
+  width: min(100%, 720px);
+  max-height: min(85vh, 760px);
   padding: 1.6rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
@@ -20,6 +21,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow: auto;
 }
 
 .modal h2 {
@@ -38,7 +40,7 @@
 
 .modal .actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 0.7rem;
 }
 
@@ -49,6 +51,11 @@
   cursor: pointer;
 }
 
+.modal button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .modal button:first-child {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff8f0;
@@ -57,4 +64,81 @@
 .modal button:last-child {
   background: rgba(17, 32, 61, 0.08);
   color: var(--text-dark);
+}
+
+.status-message {
+  color: rgba(17, 32, 61, 0.75);
+  font-size: 0.95rem;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(17, 32, 61, 0.12);
+}
+
+.results h3 {
+  color: var(--text-dark);
+  font-size: 1.15rem;
+}
+
+.results-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.result-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(17, 32, 61, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.result-card img {
+  width: 72px;
+  height: 104px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(17, 32, 61, 0.08);
+}
+
+.result-copy {
+  min-width: 0;
+}
+
+.result-copy h4 {
+  margin-bottom: 0.3rem;
+  color: var(--text-dark);
+  font-size: 1.05rem;
+}
+
+.result-copy p {
+  color: rgba(17, 32, 61, 0.72);
+}
+
+.add-result-button {
+  background: rgba(17, 32, 61, 0.08);
+  color: var(--text-dark);
+}
+
+@media (max-width: 640px) {
+  .result-card {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .result-card img {
+    width: 56px;
+    height: 82px;
+  }
+
+  .add-result-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
 }

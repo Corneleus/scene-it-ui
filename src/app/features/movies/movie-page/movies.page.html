@@ -13,7 +13,7 @@
         <h2>All Movies</h2>
         <p>{{ movies().length }} titles currently loaded</p>
       </div>
-      <app-add-movie></app-add-movie>
+      <app-add-movie (movieAdded)="fetchMovies()"></app-add-movie>
     </div>
 
     <app-movie-table [movies]="movies()"></app-movie-table>

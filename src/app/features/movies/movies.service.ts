@@ -3,15 +3,42 @@
 // It does not manage UI state or rendering.
 
 import { Injectable } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { Movie } from '../../models/movies.model';
 import { HttpParams } from '@angular/common/http';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map } from 'rxjs';
 
- interface OmdbSearchResponse{
-  Search?: any[];
- }
+interface OmdbSearchItem {
+  Title?: string;
+  Year?: string;
+  Rated?: string;
+  Released?: string;
+  Runtime?: string;
+  Genre?: string;
+  Director?: string;
+  Writer?: string;
+  Actors?: string;
+  Plot?: string;
+  Language?: string;
+  Country?: string;
+  Awards?: string;
+  Poster?: string;
+  Metascore?: string;
+  imdbRating?: string;
+  imdbID?: string;
+  Type?: string;
+  DVD?: string;
+  BoxOffice?: string;
+  Production?: string;
+}
+
+interface OmdbSearchResponse {
+  Search?: OmdbSearchItem[];
+  Response?: string;
+  Error?: string;
+}
 
 @Injectable({
   providedIn: 'root' // Makes this service available app-wide
@@ -42,20 +69,36 @@ export class MovieService {
     return this.http.get<OmdbSearchResponse>('https://www.omdbapi.com/', {
       params: new HttpParams().set('apikey', this.apiKey).set('s', query)
     }).pipe(
-      map(res => res.Search?.map(o => this.convertJsonToMovie(o)) ?? []),
-      catchError(() => of([]))
+      map((res) => {
+        if (res.Response === 'False') {
+          throw new Error(res.Error ?? 'OMDb search failed.');
+        }
+
+        return res.Search?.map((o) => this.convertJsonToMovie(o)) ?? [];
+      }),
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse) {
+          return throwError(() => new Error(`OMDb request failed: ${error.message}`));
+        }
+
+        if (error instanceof Error) {
+          return throwError(() => error);
+        }
+
+        return throwError(() => new Error('OMDb search failed.'));
+      })
     );
   }
 
   getOmdbMovieById(id: string): Observable<Movie> {
-    return this.http.get<string>(`https://www.omdbapi.com/?apiKey=${this.apiKey}&i=${id}`).
+    return this.http.get<OmdbSearchItem>(`https://www.omdbapi.com/?apiKey=${this.apiKey}&i=${id}`).
       pipe(map(obj => this.convertJsonToMovie(obj)));
   }
 
-  private convertJsonToMovie(o: any): Movie {
+  private convertJsonToMovie(o: OmdbSearchItem): Movie {
     return {
       movieId: 0,
-      title: o?.Title,
+      title: o?.Title ?? '',
       year: o?.Year,
       rated: o?.Rated,
       released: o?.Released !== 'N/A' ? o?.Released : null,
@@ -71,7 +114,7 @@ export class MovieService {
       poster: o?.Poster,
       metascore: o?.Metascore,
       imdbRating: o?.imdbRating,
-      imdbId: o?.imdbId,
+      imdbId: o?.imdbID ?? '',
       type: o?.Type,
       dvd: o?.DVD,
       boxOffice: o?.BoxOffice,
