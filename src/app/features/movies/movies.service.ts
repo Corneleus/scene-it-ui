@@ -61,8 +61,8 @@ export class MovieService {
     return this.http.get<Movie[]>(this.apiUrl);
   }
 
-  addMovie(movie:Movie): Observable<string>{
-    return this.http.post<string>(this.apiUrl + '/add', movie);
+  addMovie(movie:Movie): Observable<Movie>{
+    return this.http.post<Movie>(this.apiUrl + '/add', movie);
   }
 
   searchOmdbApi(query: string): Observable<Movie[]> {
@@ -101,7 +101,7 @@ export class MovieService {
       title: o?.Title ?? '',
       year: o?.Year,
       rated: o?.Rated,
-      released: o?.Released !== 'N/A' ? o?.Released : null,
+      released: this.parseReleasedDate(o?.Released),
       runtime: o?.Runtime,
       genre: o?.Genre,
       director: o?.Director,
@@ -122,8 +122,24 @@ export class MovieService {
     };
   }
   
-
-
-
+  private parseReleasedDate(value?: string): string | null {
+    if (!value || value === 'N/A') {
+      return null;
+    }
+  
+    const parsed = new Date(value);
+  
+    if (isNaN(parsed.getTime())) {
+      return null;
+    }
+  
+    return parsed.toISOString();
+  }
+  
 }
+  
+
+
+
+
  
