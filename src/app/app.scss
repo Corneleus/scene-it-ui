@@ -1,0 +1,12 @@
+.app-content {
+  width: min(calc(100% - 2rem), var(--content-width));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    width: min(calc(100% - 1rem), var(--content-width));
+    padding: 1.25rem 0 2.5rem;
+  }
+}
