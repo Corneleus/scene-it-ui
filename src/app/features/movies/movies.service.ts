@@ -7,38 +7,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { Movie } from '../../models/movies.model';
+import { OmdbSearchItem } from '../../models/omdb-search-item.model';
+import { OmdbSearchResponse } from '../../models/omdb-search-response.model';
 import { HttpParams } from '@angular/common/http';
 import { catchError, map } from 'rxjs';
-
-interface OmdbSearchItem {
-  Title?: string;
-  Year?: string;
-  Rated?: string;
-  Released?: string;
-  Runtime?: string;
-  Genre?: string;
-  Director?: string;
-  Writer?: string;
-  Actors?: string;
-  Plot?: string;
-  Language?: string;
-  Country?: string;
-  Awards?: string;
-  Poster?: string;
-  Metascore?: string;
-  imdbRating?: string;
-  imdbID?: string;
-  Type?: string;
-  DVD?: string;
-  BoxOffice?: string;
-  Production?: string;
-}
-
-interface OmdbSearchResponse {
-  Search?: OmdbSearchItem[];
-  Response?: string;
-  Error?: string;
-}
 
 @Injectable({
   providedIn: 'root' // Makes this service available app-wide
@@ -63,6 +35,14 @@ export class MovieService {
 
   addMovie(movie:Movie): Observable<Movie>{
     return this.http.post<Movie>(this.apiUrl + '/add', movie);
+  }
+
+  softDeleteMovie(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/soft-delete`, {});
+  }
+
+  hardDeleteMovie(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   searchOmdbApi(query: string): Observable<Movie[]> {

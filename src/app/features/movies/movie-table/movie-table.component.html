@@ -53,5 +53,13 @@
   <ul>
     <li *ngFor="let movie of selectedMovies()">{{ movie.title }} ({{ movie.year }})</li>
   </ul>
-  <button class="btn btn-sm btn-outline-light" (click)="clearSelection()">Clear All</button>
+  <div class="selection-actions">
+    <button type="button" class="action-button" (click)="clearSelection()" [disabled]="deleting()">Clear All</button>
+    <button type="button" class="action-button soft-delete-button" (click)="requestSoftDelete()" [disabled]="deleting()">
+      Soft Delete Selected
+    </button>
+    <button type="button" class="action-button hard-delete-button" (click)="requestHardDelete()" [disabled]="deleting()">
+      Hard Delete Selected
+    </button>
+  </div>
 </div>

@@ -16,6 +16,14 @@
       <app-add-movie (movieAdded)="fetchMovies()"></app-add-movie>
     </div>
 
-    <app-movie-table [movies]="movies()"></app-movie-table>
+    <p class="status-copy" *ngIf="deleteInProgress()">Updating movie selection...</p>
+    <p class="status-copy error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+    <app-movie-table
+      [movies]="movies()"
+      [deleting]="deleteInProgress()"
+      (softDeleteRequested)="softDeleteMovies($event)"
+      (hardDeleteRequested)="hardDeleteMovies($event)">
+    </app-movie-table>
   </section>
 </div>
