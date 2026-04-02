@@ -58,6 +58,23 @@
   margin-top: 0.4rem;
 }
 
+.status-copy {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.status-copy.success {
+  background: rgba(88, 199, 194, 0.12);
+  color: var(--surface-strong);
+}
+
+.status-copy.error {
+  background: rgba(214, 40, 40, 0.14);
+  color: #ffd9d9;
+}
+
 @media (max-width: 768px) {
   .panel-toolbar {
     align-items: flex-start;

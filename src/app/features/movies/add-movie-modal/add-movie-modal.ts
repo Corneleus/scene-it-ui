@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Output, ViewChild, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MovieService } from '../movies.service';
 import { Movie } from '../../../models/movies.model';
@@ -31,7 +32,7 @@ export class AddMovieModalComponent implements AfterViewInit {
   searchMessage = signal('');
 
   @Output() close = new EventEmitter<void>();
-  @Output() movieAdded = new EventEmitter<void>();
+  @Output() movieAdded = new EventEmitter<string>();
 
   constructor() {
     this.movieForm.controls.title.valueChanges
@@ -87,12 +88,12 @@ export class AddMovieModalComponent implements AfterViewInit {
         finalize(() => this.addInFlightId.set(null))
       )
       .subscribe({
-        next: () => {
-          this.movieAdded.emit();
+        next: (movie) => {
+          this.movieAdded.emit(movie.title);
           this.onClose();
         },
-        error: () => {
-          this.searchMessage.set('Add failed. Try again.');
+        error: (error: unknown) => {
+          this.searchMessage.set(this.getAddErrorMessage(error, result.title));
         }
       });
   }
@@ -134,5 +135,13 @@ export class AddMovieModalComponent implements AfterViewInit {
       this.searchInput?.nativeElement.focus();
       this.searchInput?.nativeElement.select();
     });
+  }
+
+  private getAddErrorMessage(error: unknown, fallbackTitle: string): string {
+    if (error instanceof HttpErrorResponse && error.status === 409) {
+      return `${fallbackTitle} is already in your library.`;
+    }
+
+    return 'Add failed. Try again.';
   }
 }
