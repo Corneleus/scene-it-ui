@@ -8,8 +8,8 @@ import { AddMovieModalComponent } from '../add-movie-modal/add-movie-modal';
   styleUrl: './add-movie.scss',
 })
 export class AddMovie {
-  @Output() close = new EventEmitter<void>();  // <-- add this
-  
+  @Output() movieAdded = new EventEmitter<void>();
+
   @ViewChild('modalHost', { read: ViewContainerRef, static: true })
   modalHost!: ViewContainerRef;
 
@@ -23,6 +23,10 @@ export class AddMovie {
     // Listen to the close event
     modalRef.instance.close.subscribe(() => {
       modalRef.destroy(); // remove modal from DOM
+    });
+
+    modalRef.instance.movieAdded.subscribe(() => {
+      this.movieAdded.emit();
     });
   }
 }

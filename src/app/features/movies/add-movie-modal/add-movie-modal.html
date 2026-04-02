@@ -6,9 +6,42 @@
     <input [formControl]="movieForm.controls.year" placeholder="Year" />
 
     <div class="actions">
-      <!-- <button (click)="searchOmdbApi()">Search OMDB</button> -->
-      <button (click)="onSave()">Save</button>
+      <button (click)="onSearch()" [disabled]="searchInFlight() || addInFlightId() !== null">
+        {{ searchInFlight() ? 'Searching...' : 'Search' }}
+      </button>
       <button (click)="onClose()">Cancel</button>
     </div>
+
+    @if (searchMessage()) {
+      <p class="status-message">{{ searchMessage() }}</p>
+    }
+
+    @if (searchResults().length) {
+      <section class="results">
+        <h3>Search Results</h3>
+
+        <div class="results-list">
+          @for (result of searchResults(); track result.imdbId) {
+            <article class="result-card">
+              <img [src]="result.poster || 'https://placehold.co/96x140?text=No+Poster'" [alt]="result.title" />
+
+              <div class="result-copy">
+                <h4>{{ result.title }}</h4>
+                <p>{{ result.year || 'Unknown year' }}</p>
+                <p>{{ result.type || 'Movie' }}</p>
+              </div>
+
+              <button
+                class="add-result-button"
+                (click)="addMovieFromResult(result)"
+                [disabled]="addInFlightId() === result.imdbId || searchInFlight()"
+              >
+                {{ addInFlightId() === result.imdbId ? 'Adding...' : 'Add' }}
+              </button>
+            </article>
+          }
+        </div>
+      </section>
+    }
   </div>
 </div>
