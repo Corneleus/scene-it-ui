@@ -53,7 +53,12 @@ export class MovieService {
 
   private mapApiError(error: unknown, fallbackMessage: string) {
     if (error instanceof HttpErrorResponse) {
-      return throwError(() => new Error(error.error || fallbackMessage));
+      const detail =
+        typeof error.error === 'string'
+          ? error.error
+          : error.error?.detail || error.error?.title || fallbackMessage;
+
+      return throwError(() => new Error(detail));
     }
 
     if (error instanceof Error) {
