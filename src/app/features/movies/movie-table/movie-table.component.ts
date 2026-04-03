@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Movie } from '../../../models/movies.model';
 
@@ -23,6 +23,18 @@ export class MovieTableComponent {
 
   // ✅ Multi-select state (track selected movie IDs)
   selectedMovieIds = signal<Set<number>>(new Set());
+
+  constructor() {
+    effect(() => {
+      const movieIds = new Set(this.movies().map((movie) => movie.movieId));
+      const selectedIds = this.selectedMovieIds();
+      const nextSelectedIds = new Set([...selectedIds].filter((id) => movieIds.has(id)));
+
+      if (nextSelectedIds.size !== selectedIds.size) {
+        this.selectedMovieIds.set(nextSelectedIds);
+      }
+    });
+  }
 
   // ✅ Computed derived state for template
   sortedMovies = computed(() => {
