@@ -28,8 +28,15 @@
     <app-movie-table
       [movies]="movies()"
       [deleting]="deleteInProgress()"
+      (detailsRequested)="showMovieDetails($event)"
       (softDeleteRequested)="softDeleteMovies($event)"
       (hardDeleteRequested)="hardDeleteMovies($event)">
     </app-movie-table>
   </section>
+
+  <app-movie-details-modal
+    *ngIf="detailsMovie()"
+    [movie]="detailsMovie()!"
+    (closed)="closeMovieDetails()">
+  </app-movie-details-modal>
 </div>

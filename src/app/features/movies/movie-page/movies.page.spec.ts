@@ -89,4 +89,15 @@ describe('MoviesPage', () => {
     expect(fixture.componentInstance.feedbackMessage()).toBe('Arrival was added to your library.');
     expect(fixture.componentInstance.feedbackTone()).toBe('success');
   });
+
+  it('opens and closes the movie details modal state', () => {
+    const fixture = TestBed.createComponent(MoviesPage);
+    fixture.detectChanges();
+
+    fixture.componentInstance.showMovieDetails(service.movies[0]);
+    expect(fixture.componentInstance.detailsMovie()?.title).toBe('Arrival');
+
+    fixture.componentInstance.closeMovieDetails();
+    expect(fixture.componentInstance.detailsMovie()).toBeNull();
+  });
 });

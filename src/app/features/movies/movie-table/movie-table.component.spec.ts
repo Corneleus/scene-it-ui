@@ -53,4 +53,13 @@ describe('MovieTableComponent', () => {
 
     expect(emittedIds).toEqual([]);
   });
+
+  it('emits the requested movie for details', () => {
+    const emittedMovies: Movie[] = [];
+    component.detailsRequested.subscribe((movie) => emittedMovies.push(movie));
+
+    component.openDetails(movies[1]);
+
+    expect(emittedMovies).toEqual([movies[1]]);
+  });
 });

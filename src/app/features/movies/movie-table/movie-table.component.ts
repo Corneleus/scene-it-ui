@@ -19,6 +19,7 @@ export class MovieTableComponent {
   sortDirection = signal<SortDirection>('asc');
   softDeleteRequested = output<number[]>();
   hardDeleteRequested = output<number[]>();
+  detailsRequested = output<Movie>();
 
   // ✅ Multi-select state (track selected movie IDs)
   selectedMovieIds = signal<Set<number>>(new Set());
@@ -88,6 +89,10 @@ export class MovieTableComponent {
     }
 
     this.hardDeleteRequested.emit(selectedIds);
+  }
+
+  openDetails(movie: Movie): void {
+    this.detailsRequested.emit(movie);
   }
 
   setSort(column: SortColumn): void {
