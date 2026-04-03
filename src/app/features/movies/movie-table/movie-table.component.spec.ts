@@ -62,4 +62,14 @@ describe('MovieTableComponent', () => {
 
     expect(emittedMovies).toEqual([movies[1]]);
   });
+
+  it('prunes selected ids when the movie input changes', () => {
+    component.selectMovie(movies[0]);
+    component.selectMovie(movies[1]);
+
+    fixture.componentRef.setInput('movies', [movies[0]]);
+    fixture.detectChanges();
+
+    expect(component.selectedMovies().map((movie) => movie.movieId)).toEqual([1]);
+  });
 });

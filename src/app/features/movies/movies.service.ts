@@ -7,23 +7,17 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { Movie } from '../../models/movies.model';
-import { OmdbSearchItem } from '../../models/omdb-search-item.model';
-import { OmdbSearchResponse } from '../../models/omdb-search-response.model';
-import { HttpParams } from '@angular/common/http';
-import { catchError, map } from 'rxjs';
+import { catchError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root' // Makes this service available app-wide
 })
 export class MovieService {
-
-  // URL of the ASP.NET Core MoviesController
-  private apiUrl = 'https://localhost:44383/api/Movies';
+  private readonly apiUrl = `${environment.apiBaseUrl}/Movies`;
 
   // HttpClient is injected (provided in main.ts via provideHttpClient)
   constructor(private http: HttpClient) {}
-
-  private readonly apiKey = '988bc720';
 
   /**
    * Fetch all movies from the backend database
@@ -46,81 +40,26 @@ export class MovieService {
   }
 
   searchOmdbApi(query: string): Observable<Movie[]> {
-    return this.http.get<OmdbSearchResponse>('https://www.omdbapi.com/', {
-      params: new HttpParams().set('apikey', this.apiKey).set('s', query)
-    }).pipe(
-      map((res) => {
-        if (res.Response === 'False') {
-          throw new Error(res.Error ?? 'OMDb search failed.');
-        }
-
-        return res.Search?.map((o) => this.convertJsonToMovie(o)) ?? [];
-      }),
-      catchError((error: unknown) => {
-        if (error instanceof HttpErrorResponse) {
-          return throwError(() => new Error(`OMDb request failed: ${error.message}`));
-        }
-
-        if (error instanceof Error) {
-          return throwError(() => error);
-        }
-
-        return throwError(() => new Error('OMDb search failed.'));
-      })
-    );
+    return this.http.get<Movie[]>(`${this.apiUrl}/search`, {
+      params: { query }
+    }).pipe(catchError((error: unknown) => this.mapApiError(error, 'OMDb search failed.')));
   }
 
   getOmdbMovieById(id: string): Observable<Movie> {
-    return this.http.get<OmdbSearchItem>(`https://www.omdbapi.com/?apiKey=${this.apiKey}&i=${id}`).
-      pipe(map(obj => this.convertJsonToMovie(obj)));
+    return this.http
+      .get<Movie>(`${this.apiUrl}/lookup/${encodeURIComponent(id)}`)
+      .pipe(catchError((error: unknown) => this.mapApiError(error, 'OMDb lookup failed.')));
   }
 
-  private convertJsonToMovie(o: OmdbSearchItem): Movie {
-    return {
-      movieId: 0,
-      title: o?.Title ?? '',
-      year: o?.Year,
-      rated: o?.Rated,
-      released: this.parseReleasedDate(o?.Released),
-      runtime: o?.Runtime,
-      genre: o?.Genre,
-      director: o?.Director,
-      writer: o?.Writer,
-      actors: o?.Actors,
-      plot: o?.Plot,
-      language: o?.Language,
-      country: o?.Country,
-      awards: o?.Awards,
-      poster: o?.Poster,
-      metascore: o?.Metascore,
-      imdbRating: o?.imdbRating,
-      imdbVotes: o?.imdbVotes,
-      imdbId: o?.imdbID ?? '',
-      type: o?.Type,
-      dvd: o?.DVD,
-      boxOffice: o?.BoxOffice,
-      production: o?.Production
-    };
-  }
-  
-  private parseReleasedDate(value?: string): string | null {
-    if (!value || value === 'N/A') {
-      return null;
+  private mapApiError(error: unknown, fallbackMessage: string) {
+    if (error instanceof HttpErrorResponse) {
+      return throwError(() => new Error(error.error || fallbackMessage));
     }
-  
-    const parsed = new Date(value);
-  
-    if (isNaN(parsed.getTime())) {
-      return null;
+
+    if (error instanceof Error) {
+      return throwError(() => error);
     }
-  
-    return parsed.toISOString();
+
+    return throwError(() => new Error(fallbackMessage));
   }
-  
 }
-  
-
-
-
-
- 
