@@ -42,6 +42,15 @@
   color: var(--accent-cool);
 }
 
+.details-button {
+  padding: 0.65rem 0.95rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 140, 66, 0.22), rgba(88, 199, 194, 0.22));
+  color: var(--surface-strong);
+  cursor: pointer;
+}
+
 .movie-table tbody tr {
   transition: background-color 0.2s ease, transform 0.2s ease;
 }

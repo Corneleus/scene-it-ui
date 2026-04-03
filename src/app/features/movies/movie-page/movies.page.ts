@@ -5,6 +5,7 @@ import { MovieTableComponent } from '../movie-table/movie-table.component';
 import { AddMovie } from '../add-movie/add-movie';
 import { MovieService } from '../movies.service';
 import { forkJoin } from 'rxjs';
+import { MovieDetailsModalComponent } from '../movie-details-modal/movie-details-modal.component';
 
 @Component({
   selector: 'app-movies',
@@ -12,7 +13,8 @@ import { forkJoin } from 'rxjs';
   imports: [
     CommonModule,
     MovieTableComponent,
-    AddMovie
+    AddMovie,
+    MovieDetailsModalComponent
 ],
   templateUrl: './movies.page.html',
   styleUrls: ['./movies.page.scss']
@@ -28,6 +30,7 @@ export class MoviesPage {
   deleteInProgress = signal(false);
   feedbackMessage = signal('');
   feedbackTone = signal<'success' | 'error'>('success');
+  detailsMovie = signal<Movie | null>(null);
 
   constructor() {
     this.fetchMovies();
@@ -77,6 +80,14 @@ export class MoviesPage {
       'Unable to hard delete selected movies.',
       `${ids.length} movie${ids.length === 1 ? '' : 's'} permanently deleted.`
     );
+  }
+
+  showMovieDetails(movie: Movie): void {
+    this.detailsMovie.set(movie);
+  }
+
+  closeMovieDetails(): void {
+    this.detailsMovie.set(null);
   }
 
   private runDeleteRequest(

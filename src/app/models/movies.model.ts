@@ -20,6 +20,7 @@ export interface Movie {
   poster?: string | null;   // Nullable poster URL
   metascore?: string | null; // Nullable metascore
   imdbRating?: string | null; // Nullable IMDB rating
+  imdbVotes?: string | null; // Nullable IMDB votes
   imdbId: string;           // Required IMDB ID
   type?: string | null;     // Nullable type (movie, series, etc.)
   dvd?: string | null;      // Nullable DVD release date

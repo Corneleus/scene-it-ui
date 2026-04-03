@@ -15,6 +15,7 @@ export interface OmdbSearchItem {
   Poster?: string;
   Metascore?: string;
   imdbRating?: string;
+  imdbVotes?: string;
   imdbID?: string;
   Type?: string;
   DVD?: string;

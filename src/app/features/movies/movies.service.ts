@@ -94,6 +94,7 @@ export class MovieService {
       poster: o?.Poster,
       metascore: o?.Metascore,
       imdbRating: o?.imdbRating,
+      imdbVotes: o?.imdbVotes,
       imdbId: o?.imdbID ?? '',
       type: o?.Type,
       dvd: o?.DVD,
