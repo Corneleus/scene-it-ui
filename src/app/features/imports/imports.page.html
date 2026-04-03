@@ -1,0 +1,208 @@
+<div class="imports-page">
+  <section class="page-hero">
+    <p class="eyebrow">OMDb Imports</p>
+    <h1>Queue and run library imports.</h1>
+    <p class="page-copy">
+      Manage pending IMDb imports, submit new OMDb IDs, and review the latest batch activity from one page.
+    </p>
+  </section>
+
+  <section class="overview-grid">
+    <article class="metric-card">
+      <span class="metric-label">Queue Size</span>
+      <strong>{{ queueItems().length }}</strong>
+      <p>Total records currently tracked by the import queue.</p>
+    </article>
+    <article class="metric-card">
+      <span class="metric-label">Pending</span>
+      <strong>{{ pendingCount() }}</strong>
+      <p>Items waiting to be picked up by the next batch run.</p>
+    </article>
+    <article class="metric-card">
+      <span class="metric-label">Failed</span>
+      <strong>{{ failedCount() }}</strong>
+      <p>Queue records that need attention after an unsuccessful attempt.</p>
+    </article>
+  </section>
+
+  <p
+    class="status-copy"
+    [class.error]="feedbackTone() === 'error'"
+    [class.success]="feedbackTone() === 'success'"
+    *ngIf="feedbackMessage()">
+    {{ feedbackMessage() }}
+  </p>
+
+  <section class="panel-grid">
+    <article class="content-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Queue Inputs</p>
+          <h2>Add OMDb import rows</h2>
+        </div>
+        <button type="button" class="secondary-button" (click)="addQueueRow()">Add Row</button>
+      </div>
+
+      <form [formGroup]="queueForm" (ngSubmit)="queueImports()" class="queue-form">
+        <div formArrayName="items" class="queue-input-list">
+          <div
+            class="queue-row"
+            *ngFor="let item of itemsFormArray.controls; let i = index; trackBy: trackByQueueIndex"
+            [formGroupName]="i">
+            <div class="search-block">
+              <label class="search-label">
+                <span>IMDb search</span>
+                <div class="search-input-row">
+                  <input type="text" formControlName="searchQuery" placeholder="Search by title" />
+                  <button
+                    type="button"
+                    class="secondary-button"
+                    [disabled]="rowSearchLoading()[i]"
+                    (click)="searchRow(i)"
+                  >
+                    {{ rowSearchLoading()[i] ? 'Searching...' : 'Search' }}
+                  </button>
+                </div>
+              </label>
+
+              <div class="search-results" *ngIf="rowSearchResults()[i]?.length">
+                <article
+                  class="search-result"
+                  *ngFor="let movie of rowSearchResults()[i]; trackBy: trackByMovie"
+                  (click)="selectSearchResult(i, movie)"
+                >
+                  <strong>{{ movie.title }}</strong>
+                  <span>{{ movie.imdbId }}</span>
+                  <small>{{ movie.year || 'Unknown year' }} · {{ movie.type || 'Movie' }}</small>
+                </article>
+              </div>
+            </div>
+
+            <input type="hidden" formControlName="imdbId" />
+            <input type="hidden" formControlName="title" />
+
+            <button type="button" class="icon-button" (click)="removeQueueRow(i)">Remove</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-button" [disabled]="queueSubmitting()">
+            {{ queueSubmitting() ? 'Queueing...' : 'Queue Import Items' }}
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <article class="content-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Manual Run</p>
+          <h2>Run an import batch</h2>
+        </div>
+      </div>
+
+      <form [formGroup]="runForm" (ngSubmit)="runImports()" class="run-form">
+        <label class="stacked-field">
+          <span>Max imports this run</span>
+          <input type="number" min="1" max="500" formControlName="maxCount" />
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-button" [disabled]="runSubmitting()">
+            {{ runSubmitting() ? 'Running...' : 'Run Import Batch' }}
+          </button>
+        </div>
+      </form>
+    </article>
+  </section>
+
+  <section class="content-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Current Queue</p>
+        <h2>Import queue status</h2>
+      </div>
+      <button type="button" class="secondary-button" (click)="refreshQueue()">Refresh Queue</button>
+    </div>
+
+    <p class="status-copy" *ngIf="queueLoading()">Loading queue...</p>
+
+    <div class="table-shell" *ngIf="!queueLoading()">
+      <table class="data-table" *ngIf="queueItems().length; else emptyQueue">
+        <thead>
+          <tr>
+            <th>IMDb ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Attempts</th>
+            <th>Last Attempt</th>
+            <th>Imported</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of queueItems(); trackBy: trackByQueueItem">
+            <td>{{ item.imdbId }}</td>
+            <td>{{ item.title || 'Unknown title' }}</td>
+            <td><span class="status-pill">{{ item.status }}</span></td>
+            <td>{{ item.attemptCount }}</td>
+            <td>{{ item.lastAttemptedAtUtc ? (item.lastAttemptedAtUtc | date: 'short') : 'Never' }}</td>
+            <td>{{ item.importedAtUtc ? (item.importedAtUtc | date: 'short') : 'Not imported' }}</td>
+            <td>{{ item.errorMessage || 'None' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyQueue>
+      <p class="empty-copy">No import queue items yet.</p>
+    </ng-template>
+  </section>
+
+  <section class="content-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Recent Runs</p>
+        <h2>Import run history</h2>
+      </div>
+      <button type="button" class="secondary-button" (click)="refreshRuns()">Refresh Runs</button>
+    </div>
+
+    <p class="status-copy" *ngIf="runsLoading()">Loading runs...</p>
+
+    <div class="table-shell" *ngIf="!runsLoading()">
+      <table class="data-table" *ngIf="importRuns().length; else emptyRuns">
+        <thead>
+          <tr>
+            <th>Run ID</th>
+            <th>Started</th>
+            <th>Completed</th>
+            <th>Requested</th>
+            <th>Attempted</th>
+            <th>Imported</th>
+            <th>Duplicates</th>
+            <th>Failed</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let run of importRuns(); trackBy: trackByRun">
+            <td>{{ run.importRunId }}</td>
+            <td>{{ run.startedAtUtc | date: 'short' }}</td>
+            <td>{{ run.completedAtUtc ? (run.completedAtUtc | date: 'short') : 'In progress' }}</td>
+            <td>{{ run.requestedLimit }}</td>
+            <td>{{ run.attemptedCount }}</td>
+            <td>{{ run.importedCount }}</td>
+            <td>{{ run.duplicateCount }}</td>
+            <td>{{ run.failedCount }}</td>
+            <td>{{ run.notes || 'No notes' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyRuns>
+      <p class="empty-copy">No import runs recorded yet.</p>
+    </ng-template>
+  </section>
+</div>
