@@ -1,4 +1,4 @@
-<div class="details-overlay" (click)="close()">
+<div class="details-overlay" (click)="close()" role="dialog" aria-modal="true" aria-labelledby="movie-details-title">
   <section class="details-shell" (click)="$event.stopPropagation()">
     <button type="button" class="close-button" (click)="close()" aria-label="Close movie details">
       Close
@@ -14,7 +14,7 @@
 
       <div class="hero-copy">
         <p class="eyebrow">Movie Details</p>
-        <h2>{{ movie().title }}</h2>
+        <h2 id="movie-details-title">{{ movie().title }}</h2>
 
         <div class="fact-list" *ngIf="summaryFacts().length">
           <span class="fact-chip" *ngFor="let fact of summaryFacts()">

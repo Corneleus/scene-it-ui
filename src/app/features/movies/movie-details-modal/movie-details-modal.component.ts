@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, HostListener, input, output } from '@angular/core';
 import { Movie } from '../../../models/movies.model';
 
 @Component({
@@ -48,5 +48,10 @@ export class MovieDetailsModalComponent {
 
   close(): void {
     this.closed.emit();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.close();
   }
 }

@@ -1,120 +1,161 @@
 <div class="imports-page">
-  <section class="page-hero">
-    <p class="eyebrow">OMDb Imports</p>
-    <h1>Queue and run library imports.</h1>
-    <p class="page-copy">
-      Manage pending IMDb imports, submit new OMDb IDs, and review the latest batch activity from one page.
-    </p>
-  </section>
+<section class="imports-page">
+  <header class="page-hero">
+    <p class="eyebrow">OMDb imports</p>
+    <h1>Queue IMDb titles quickly</h1>
+    <p class="page-copy">Search, select, and queue with minimal inputs.</p>
 
-  <section class="overview-grid">
-    <article class="metric-card">
-      <span class="metric-label">Queue Size</span>
-      <strong>{{ queueItems().length }}</strong>
-      <p>Total records currently tracked by the import queue.</p>
-    </article>
-    <article class="metric-card">
-      <span class="metric-label">Pending</span>
-      <strong>{{ pendingCount() }}</strong>
-      <p>Items waiting to be picked up by the next batch run.</p>
-    </article>
-    <article class="metric-card">
-      <span class="metric-label">Failed</span>
-      <strong>{{ failedCount() }}</strong>
-      <p>Queue records that need attention after an unsuccessful attempt.</p>
-    </article>
-  </section>
+    <section class="settings-panel">
+      <h2>Import automation settings</h2>
+      <p class="status-copy">These settings only affect this browser session until the backend exposes persistence.</p>
+      <form [formGroup]="automationForm" class="settings-grid" (ngSubmit)="updateAutomationSettings()">
+        <div class="switch-field">
+          <label>Enabled</label>
+          <input type="checkbox" formControlName="enabled" />
+        </div>
+        <div class="switch-field">
+          <label>Run on startup</label>
+          <input type="checkbox" formControlName="runOnStartup" />
+        </div>
+        <div>
+          <label>Interval (minutes)</label>
+          <input type="number" formControlName="intervalMinutes" min="1" />
+        </div>
+        <div>
+          <label>Max imports/day</label>
+          <input type="number" formControlName="maxImportsPerDay" min="1" />
+        </div>
+        <div>
+          <label>Max per run</label>
+          <input type="number" formControlName="maxCountPerRun" min="1" />
+        </div>
+        <button type="submit" class="primary-button inline">Save</button>
+        <button type="button" class="secondary-button inline" (click)="runAutomationNow()" [disabled]="runSubmitting()">
+          Run now
+        </button>
+      </form>
+    </section>
+  </header>
 
   <p
     class="status-copy"
     [class.error]="feedbackTone() === 'error'"
     [class.success]="feedbackTone() === 'success'"
-    *ngIf="feedbackMessage()">
+    *ngIf="feedbackMessage()"
+  >
     {{ feedbackMessage() }}
   </p>
 
-  <section class="panel-grid">
-    <article class="content-panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Queue Inputs</p>
-          <h2>Add OMDb import rows</h2>
-        </div>
-        <button type="button" class="secondary-button" (click)="addQueueRow()">Add Row</button>
-      </div>
-
-      <form [formGroup]="queueForm" (ngSubmit)="queueImports()" class="queue-form">
-        <div formArrayName="items" class="queue-input-list">
-          <div
-            class="queue-row"
-            *ngFor="let item of itemsFormArray.controls; let i = index; trackBy: trackByQueueIndex"
-            [formGroupName]="i">
-            <div class="search-block">
-              <label class="search-label">
-                <span>IMDb search</span>
-                <div class="search-input-row">
-                  <input type="text" formControlName="searchQuery" placeholder="Search by title" />
-                  <button
-                    type="button"
-                    class="secondary-button"
-                    [disabled]="rowSearchLoading()[i]"
-                    (click)="searchRow(i)"
-                  >
-                    {{ rowSearchLoading()[i] ? 'Searching...' : 'Search' }}
-                  </button>
-                </div>
-              </label>
-
-              <div class="search-results" *ngIf="rowSearchResults()[i]?.length">
-                <article
-                  class="search-result"
-                  *ngFor="let movie of rowSearchResults()[i]; trackBy: trackByMovie"
-                  (click)="selectSearchResult(i, movie)"
-                >
-                  <strong>{{ movie.title }}</strong>
-                  <span>{{ movie.imdbId }}</span>
-                  <small>{{ movie.year || 'Unknown year' }} · {{ movie.type || 'Movie' }}</small>
-                </article>
-              </div>
+  <form [formGroup]="queueForm" (ngSubmit)="queueImports()" class="compact-form">
+    <div formArrayName="items" class="queue-list">
+      <div class="queue-row" *ngFor="let row of queueRows(); let i = index" [formGroupName]="i">
+          <label>
+            <span>IMDb search</span>
+            <div class="search-row">
+              <input type="text" formControlName="searchQuery" placeholder="Search titles" />
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="rowSearchLoading()[i]"
+                (click)="searchRow(i)"
+              >
+                {{ rowSearchLoading()[i] ? 'Searching…' : 'Search' }}
+              </button>
             </div>
+          </label>
 
-            <input type="hidden" formControlName="imdbId" />
-            <input type="hidden" formControlName="title" />
+          <label class="imdb-lookup">
+            <span>IMDb ID</span>
+            <div class="search-row">
+              <input type="text" formControlName="imdbLookup" placeholder="tt0372784" />
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="rowSearchLoading()[i]"
+                (click)="lookupImdb(i)"
+              >
+                Lookup
+              </button>
+            </div>
+          </label>
 
-            <button type="button" class="icon-button" (click)="removeQueueRow(i)">Remove</button>
-          </div>
+        <div class="search-results" *ngIf="rowSearchResults()[i]?.length">
+          <article
+            class="result-card"
+            *ngFor="let movie of rowSearchResults()[i]; trackBy: trackByMovie"
+            (click)="selectSearchResult(i, movie)"
+          >
+            <div>
+              <strong>{{ movie.title }}</strong>
+              <small>{{ movie.year || 'Unknown year' }}</small>
+            </div>
+            <span>{{ movie.imdbId }}</span>
+          </article>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="primary-button" [disabled]="queueSubmitting()">
-            {{ queueSubmitting() ? 'Queueing...' : 'Queue Import Items' }}
-          </button>
-        </div>
-      </form>
-    </article>
+        <input type="hidden" formControlName="imdbId" />
+        <input type="hidden" formControlName="title" />
 
-    <article class="content-panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Manual Run</p>
-          <h2>Run an import batch</h2>
-        </div>
+        <button type="button" class="icon-button" (click)="removeQueueRow(i)">Remove</button>
       </div>
+    </div>
 
+    <button type="button" class="secondary-button block" (click)="addQueueRow()">
+      Add Another Row
+    </button>
+
+    <button type="submit" class="primary-button block" [disabled]="queueSubmitting()">
+      {{ queueSubmitting() ? 'Queueing…' : 'Queue Import Items' }}
+    </button>
+  </form>
+
+  <section class="simple-grid">
+    <article class="panel">
+      <p class="eyebrow">Manual run</p>
+      <h2>Run import batch</h2>
       <form [formGroup]="runForm" (ngSubmit)="runImports()" class="run-form">
-        <label class="stacked-field">
-          <span>Max imports this run</span>
+        <label>
+          <span>Max imports</span>
           <input type="number" min="1" max="500" formControlName="maxCount" />
         </label>
-
-        <div class="form-actions">
-          <button type="submit" class="primary-button" [disabled]="runSubmitting()">
-            {{ runSubmitting() ? 'Running...' : 'Run Import Batch' }}
-          </button>
-        </div>
+        <button type="submit" class="primary-button block" [disabled]="runSubmitting()">
+          {{ runSubmitting() ? 'Running…' : 'Run Import Batch' }}
+        </button>
       </form>
     </article>
+
+    <article class="panel">
+      <p class="eyebrow">Queue</p>
+      <h2>Current items</h2>
+      <div class="table-shell" *ngIf="!queueLoading(); else loadingQueue">
+        <table class="data-table" *ngIf="queueItems().length; else emptyQueue">
+          <thead>
+            <tr>
+              <th>IMDb ID</th>
+              <th>Title</th>
+              <th>Year</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Attempts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of queueItems(); trackBy: trackByQueueItem">
+              <td>{{ item.imdbId }}</td>
+              <td>{{ item.title || 'Unknown' }}</td>
+              <td>{{ item.year || 'Unknown' }}</td>
+              <td>{{ item.type || 'Movie' }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.attemptCount }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #loadingQueue><p class="status-copy">Loading queue…</p></ng-template>
+      <ng-template #emptyQueue><p class="empty-copy">Queue empty.</p></ng-template>
+    </article>
   </section>
+</section>
 
   <section class="content-panel">
     <div class="panel-heading">
@@ -133,6 +174,10 @@
           <tr>
             <th>IMDb ID</th>
             <th>Title</th>
+            <th>Year</th>
+            <th>Genre</th>
+            <th>Director</th>
+            <th>Rating</th>
             <th>Status</th>
             <th>Attempts</th>
             <th>Last Attempt</th>
@@ -144,6 +189,10 @@
           <tr *ngFor="let item of queueItems(); trackBy: trackByQueueItem">
             <td>{{ item.imdbId }}</td>
             <td>{{ item.title || 'Unknown title' }}</td>
+            <td>{{ item.year || 'Unknown' }}</td>
+            <td>{{ item.genre || 'Unknown' }}</td>
+            <td>{{ item.director || 'Unknown' }}</td>
+            <td>{{ item.imdbRating || 'N/A' }}</td>
             <td><span class="status-pill">{{ item.status }}</span></td>
             <td>{{ item.attemptCount }}</td>
             <td>{{ item.lastAttemptedAtUtc ? (item.lastAttemptedAtUtc | date: 'short') : 'Never' }}</td>
