@@ -1,4 +1,15 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, EventEmitter, Output, ViewChild, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Output,
+  ViewChild,
+  inject,
+  signal
+} from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MovieService } from '../movies.service';
@@ -100,6 +111,11 @@ export class AddMovieModalComponent implements AfterViewInit {
 
   onClose() {
     this.close.emit();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.onClose();
   }
 
   private runSearch(title: string): void {

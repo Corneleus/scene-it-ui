@@ -1,8 +1,8 @@
-<div class="overlay" (click)="onClose()">
+<div class="overlay" (click)="onClose()" role="dialog" aria-modal="true" aria-label="Add movie">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="search-row">
       <input #searchInput [formControl]="movieForm.controls.title" placeholder="Search by title" />
-      <button (click)="onSearch()" [disabled]="searchInFlight() || addInFlightId() !== null">
+      <button type="button" (click)="onSearch()" [disabled]="searchInFlight() || addInFlightId() !== null">
         {{ searchInFlight() ? 'Searching...' : 'Search' }}
       </button>
     </div>
@@ -27,6 +27,7 @@
               </div>
 
               <button
+                type="button"
                 class="add-result-button"
                 (click)="addMovieFromResult(result)"
                 [disabled]="addInFlightId() === result.imdbId || searchInFlight()"
