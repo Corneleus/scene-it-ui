@@ -1,14 +1,38 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ImportsPage } from './imports.page';
 import { ImportsService } from './imports.service';
 import { MovieService } from '../movies/movies.service';
-import { ImportQueueItem, ImportRunResult, QueueImportResult } from '../../models/imports.model';
+import {
+  DatasetImportPreviewResult,
+  ImportQueueItem,
+  ImportRunResult,
+  QueueImportResult,
+} from '../../models/imports.model';
 import { Movie } from '../../models/movies.model';
 
 class ImportsServiceStub {
   getQueue = vi.fn(() => of([] as ImportQueueItem[]));
   getRuns = vi.fn(() => of([] as ImportRunResult[]));
+  previewDataset = vi.fn(() =>
+    of({
+      totalRowsScanned: 10,
+      matchedCount: 6,
+      alreadyQueuedCount: 2,
+      alreadyImportedCount: 1,
+      readyToQueueCount: 3,
+    } satisfies DatasetImportPreviewResult),
+  );
+  queueDataset = vi.fn(() =>
+    of({
+      totalRowsScanned: 10,
+      matchedCount: 6,
+      alreadyQueuedCount: 2,
+      alreadyImportedCount: 1,
+      readyToQueueCount: 3,
+      queuedCount: 3,
+    }),
+  );
   queueItems = vi.fn(() =>
     of({
       queuedCount: 1,
@@ -42,6 +66,38 @@ class MovieServiceStub {
   );
 }
 
+function createQueueItem(importQueueId: number): ImportQueueItem {
+  return {
+    importQueueId,
+    imdbId: `tt${String(importQueueId).padStart(7, '0')}`,
+    title: `Movie ${importQueueId}`,
+    year: '2000',
+    rated: null,
+    runtime: null,
+    genre: null,
+    director: null,
+    writer: null,
+    actors: null,
+    plot: null,
+    language: null,
+    country: null,
+    awards: null,
+    poster: null,
+    metascore: null,
+    imdbRating: null,
+    imdbVotes: null,
+    type: 'movie',
+    dvd: null,
+    boxOffice: null,
+    production: null,
+    status: 'Pending',
+    attemptCount: 0,
+    lastAttemptedAtUtc: null,
+    importedAtUtc: null,
+    errorMessage: null,
+  };
+}
+
 describe('ImportsPage', () => {
   let importsService: ImportsServiceStub;
   let movieService: MovieServiceStub;
@@ -71,20 +127,74 @@ describe('ImportsPage', () => {
     expect(importsService.getRuns).toHaveBeenCalled();
   });
 
-  it('looks up an IMDb id and patches the queue row values', () => {
+  it('previews dataset matches using the dataset form filters', () => {
+    const fixture = TestBed.createComponent(ImportsPage);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.datasetForm.patchValue({
+      datasetPath: 'C:\\datasets\\title.basics.tsv.gz',
+      movies: true,
+      series: true,
+      startYear: 1990,
+      endYear: 2020,
+      maxToQueue: 2500,
+    });
+
+    component.previewDatasetImports();
+
+    expect(importsService.previewDataset).toHaveBeenCalledWith({
+      datasetPath: 'C:\\datasets\\title.basics.tsv.gz',
+      titleTypes: ['movie', 'tvSeries'],
+      excludeAdult: true,
+      startYear: 1990,
+      endYear: 2020,
+      skipAlreadyImported: true,
+      skipAlreadyQueued: true,
+    });
+    expect(component.datasetPreview()?.readyToQueueCount).toBe(3);
+  });
+
+  it('looks up an IMDb id, patches the queue row values, and keeps the title search untouched', () => {
     const fixture = TestBed.createComponent(ImportsPage);
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
     const row = component.itemsFormArray.at(0);
-    row.patchValue({ imdbLookup: 'tt0372784' });
+    row.patchValue({ imdbLookup: 'tt0372784', searchQuery: 'Batman' });
 
     component.lookupImdb(0);
 
     expect(movieService.getOmdbMovieById).toHaveBeenCalledWith('tt0372784');
     expect(row.get('imdbId')?.value).toBe('tt0372784');
     expect(row.get('title')?.value).toBe('Batman Begins');
-    expect(row.get('searchQuery')?.value).toBe('Batman Begins');
+    expect(row.get('searchQuery')?.value).toBe('Batman');
+    expect(component.rowLookupResults()[0]?.title).toBe('Batman Begins');
+    expect(component.rowLookupMessages()[0]).toBe('');
+  });
+
+  it('shows an inline invalid-id message when IMDb lookup fails', () => {
+    movieService.getOmdbMovieById = vi.fn(() =>
+      throwError(() => new Error('OMDb lookup failed.')),
+    );
+
+    const fixture = TestBed.createComponent(ImportsPage);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const row = component.itemsFormArray.at(0);
+    row.patchValue({
+      imdbLookup: 'not-valid',
+      imdbId: 'tt0372784',
+      title: 'Batman Begins',
+    });
+
+    component.lookupImdb(0);
+
+    expect(row.get('imdbId')?.value).toBe('');
+    expect(row.get('title')?.value).toBe('');
+    expect(component.rowLookupResults()[0]).toBeNull();
+    expect(component.rowLookupMessages()[0]).toBe('That is not a valid IMDb ID.');
   });
 
   it('rewires debounced row search after a successful queue reset', () => {
@@ -137,5 +247,29 @@ describe('ImportsPage', () => {
       'Automation settings updated for this session only.',
     );
     expect(fixture.componentInstance.feedbackTone()).toBe('success');
+  });
+
+  it('limits rendered queue slices and clamps queue pages after refresh', () => {
+    const fixture = TestBed.createComponent(ImportsPage);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.queueItems.set(Array.from({ length: 75 }, (_, index) => createQueueItem(index + 1)));
+    component.currentItemsPage.set(1);
+    component.detailedQueuePage.set(1);
+
+    expect(component.currentItemsView()).toHaveLength(12);
+    expect(component.currentItemsView()[0].importQueueId).toBe(13);
+    expect(component.detailedQueueView()).toHaveLength(25);
+    expect(component.detailedQueueView()[0].importQueueId).toBe(51);
+
+    importsService.getQueue = vi.fn(() => of(Array.from({ length: 5 }, (_, index) => createQueueItem(index + 1))));
+
+    component.refreshQueue();
+
+    expect(component.currentItemsPage()).toBe(0);
+    expect(component.detailedQueuePage()).toBe(0);
+    expect(component.currentItemsView()).toHaveLength(5);
+    expect(component.detailedQueueView()).toHaveLength(5);
   });
 });
