@@ -46,9 +46,124 @@
     {{ feedbackMessage() }}
   </p>
 
+  <section class="dataset-section">
+    <article class="panel dataset-panel">
+      <p class="eyebrow">Bulk IMDb dataset imports</p>
+      <h2>Queue IDs from `title.basics.tsv.gz`</h2>
+      <p class="status-copy">
+        Point the backend at a local IMDb dataset file, apply filters, preview matches, then queue IDs for the existing OMDb enrichment flow.
+      </p>
+
+      <form [formGroup]="datasetForm" class="dataset-form">
+        <label class="dataset-path-field">
+          <span>Dataset path</span>
+          <input type="text" formControlName="datasetPath" placeholder="C:\datasets\title.basics.tsv.gz" />
+        </label>
+
+        <div class="dataset-filter-grid">
+          <div class="dataset-filter-card">
+            <h3>Title types</h3>
+            <label class="checkbox-row" *ngFor="let option of datasetTypeOptions">
+              <span>{{ option.label }}</span>
+              <input type="checkbox" [formControlName]="option.controlName" />
+            </label>
+          </div>
+
+          <div class="dataset-filter-card">
+            <h3>Limits</h3>
+            <label class="checkbox-row">
+              <span>Exclude adult titles</span>
+              <input type="checkbox" formControlName="excludeAdult" />
+            </label>
+            <label class="checkbox-row">
+              <span>Skip already imported</span>
+              <input type="checkbox" formControlName="skipAlreadyImported" />
+            </label>
+            <label class="checkbox-row">
+              <span>Skip already queued</span>
+              <input type="checkbox" formControlName="skipAlreadyQueued" />
+            </label>
+          </div>
+        </div>
+
+        <div class="dataset-range-grid">
+          <label>
+            <span>Start year</span>
+            <input type="number" formControlName="startYear" placeholder="1980" />
+          </label>
+          <label>
+            <span>End year</span>
+            <input type="number" formControlName="endYear" placeholder="2025" />
+          </label>
+          <label>
+            <span>Max to queue</span>
+            <input type="number" min="1" formControlName="maxToQueue" />
+          </label>
+        </div>
+
+        <div class="dataset-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="datasetPreviewLoading() || datasetQueueSubmitting()"
+            (click)="previewDatasetImports()"
+          >
+            {{ datasetPreviewLoading() ? 'Previewing…' : 'Preview Matches' }}
+          </button>
+
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="datasetPreviewLoading() || datasetQueueSubmitting()"
+            (click)="queueDatasetImports()"
+          >
+            {{ datasetQueueSubmitting() ? 'Queueing…' : 'Queue Dataset IDs' }}
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel dataset-panel">
+      <p class="eyebrow">Preview</p>
+      <h2>Dataset match summary</h2>
+
+      <div class="dataset-stats" *ngIf="datasetPreview() as preview; else emptyDatasetPreview">
+        <div class="dataset-stat">
+          <span class="dataset-stat-label">Rows scanned</span>
+          <strong>{{ preview.totalRowsScanned }}</strong>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-stat-label">Matched filters</span>
+          <strong>{{ preview.matchedCount }}</strong>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-stat-label">Already queued</span>
+          <strong>{{ preview.alreadyQueuedCount }}</strong>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-stat-label">Already imported</span>
+          <strong>{{ preview.alreadyImportedCount }}</strong>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-stat-label">Ready to queue</span>
+          <strong>{{ preview.readyToQueueCount }}</strong>
+        </div>
+      </div>
+
+      <p class="status-copy success" *ngIf="datasetQueueSummary()">
+        {{ datasetQueueSummary() }}
+      </p>
+
+      <ng-template #emptyDatasetPreview>
+        <p class="empty-copy">Run a dataset preview to see how many IMDb IDs can be queued.</p>
+      </ng-template>
+    </article>
+  </section>
+
   <form [formGroup]="queueForm" (ngSubmit)="queueImports()" class="compact-form">
     <div formArrayName="items" class="queue-list">
       <div class="queue-row" *ngFor="let row of queueRows(); let i = index" [formGroupName]="i">
+        <div class="lookup-section">
           <label>
             <span>IMDb search</span>
             <div class="search-row">
@@ -63,21 +178,7 @@
               </button>
             </div>
           </label>
-
-          <label class="imdb-lookup">
-            <span>IMDb ID</span>
-            <div class="search-row">
-              <input type="text" formControlName="imdbLookup" placeholder="tt0372784" />
-              <button
-                type="button"
-                class="secondary-button"
-                [disabled]="rowSearchLoading()[i]"
-                (click)="lookupImdb(i)"
-              >
-                Lookup
-              </button>
-            </div>
-          </label>
+        </div>
 
         <div class="search-results" *ngIf="rowSearchResults()[i]?.length">
           <article
@@ -93,20 +194,63 @@
           </article>
         </div>
 
+        <div class="queue-tools-card">
+          <div class="queue-tools-header">
+            <p class="eyebrow">Direct lookup</p>
+            <h3>Use an IMDb ID</h3>
+          </div>
+
+          <div class="lookup-section">
+            <div class="lookup-label">IMDb ID</div>
+            <div class="search-row">
+              <input type="text" formControlName="imdbLookup" placeholder="tt0372784" />
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="rowSearchLoading()[i]"
+                (click)="lookupImdb(i)"
+              >
+                Lookup
+              </button>
+            </div>
+          </div>
+
+          <article class="result-card lookup-result-card" *ngIf="rowLookupResults()[i] as lookupMovie">
+            <div>
+              <strong>{{ lookupMovie.title }}</strong>
+              <small>{{ lookupMovie.year || 'Unknown year' }}</small>
+            </div>
+            <span>{{ lookupMovie.imdbId }}</span>
+          </article>
+
+          <p class="status-copy error lookup-message" *ngIf="rowLookupMessages()[i]">
+            {{ rowLookupMessages()[i] }}
+          </p>
+
+          <button type="button" class="icon-button queue-remove-button" (click)="removeQueueRow(i)">
+            Remove
+          </button>
+        </div>
+
         <input type="hidden" formControlName="imdbId" />
         <input type="hidden" formControlName="title" />
-
-        <button type="button" class="icon-button" (click)="removeQueueRow(i)">Remove</button>
       </div>
     </div>
 
-    <button type="button" class="secondary-button block" (click)="addQueueRow()">
-      Add Another Row
-    </button>
+    <div class="queue-actions-card">
+      <div class="queue-tools-header">
+        <p class="eyebrow">Queue actions</p>
+        <h3>Manage queued entries</h3>
+      </div>
 
-    <button type="submit" class="primary-button block" [disabled]="queueSubmitting()">
-      {{ queueSubmitting() ? 'Queueing…' : 'Queue Import Items' }}
-    </button>
+      <button type="button" class="secondary-button block" (click)="addQueueRow()">
+        Add Another Row
+      </button>
+
+      <button type="submit" class="primary-button block" [disabled]="queueSubmitting()">
+        {{ queueSubmitting() ? 'Queueing…' : 'Queue Import Items' }}
+      </button>
+    </div>
   </form>
 
   <section class="simple-grid">
@@ -127,6 +271,9 @@
     <article class="panel">
       <p class="eyebrow">Queue</p>
       <h2>Current items</h2>
+      <p class="queue-summary" *ngIf="queueItems().length">
+        Showing {{ currentItemsView().length }} of {{ queueItems().length }} queued item(s).
+      </p>
       <div class="table-shell" *ngIf="!queueLoading(); else loadingQueue">
         <table class="data-table" *ngIf="queueItems().length; else emptyQueue">
           <thead>
@@ -140,7 +287,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of queueItems(); trackBy: trackByQueueItem">
+            <tr *ngFor="let item of currentItemsView(); trackBy: trackByQueueItem">
               <td>{{ item.imdbId }}</td>
               <td>{{ item.title || 'Unknown' }}</td>
               <td>{{ item.year || 'Unknown' }}</td>
@@ -150,6 +297,20 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="queue-pagination" *ngIf="currentItemsTotalPages() > 1">
+        <button type="button" class="secondary-button" (click)="goToPreviousCurrentItemsPage()" [disabled]="currentItemsPage() === 0">
+          Previous
+        </button>
+        <span>Page {{ currentItemsPage() + 1 }} of {{ currentItemsTotalPages() }}</span>
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="goToNextCurrentItemsPage()"
+          [disabled]="currentItemsPage() >= currentItemsTotalPages() - 1"
+        >
+          Next
+        </button>
       </div>
       <ng-template #loadingQueue><p class="status-copy">Loading queue…</p></ng-template>
       <ng-template #emptyQueue><p class="empty-copy">Queue empty.</p></ng-template>
@@ -186,7 +347,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of queueItems(); trackBy: trackByQueueItem">
+          <tr *ngFor="let item of detailedQueueView(); trackBy: trackByQueueItem">
             <td>{{ item.imdbId }}</td>
             <td>{{ item.title || 'Unknown title' }}</td>
             <td>{{ item.year || 'Unknown' }}</td>
@@ -201,6 +362,28 @@
           </tr>
         </tbody>
       </table>
+    </div>
+    <div class="queue-pagination" *ngIf="detailedQueueTotalPages() > 1">
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="goToPreviousDetailedQueuePage()"
+        [disabled]="detailedQueuePage() === 0"
+      >
+        Previous
+      </button>
+      <span>
+        Page {{ detailedQueuePage() + 1 }} of {{ detailedQueueTotalPages() }} ·
+        Showing {{ detailedQueueView().length }} of {{ queueItems().length }}
+      </span>
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="goToNextDetailedQueuePage()"
+        [disabled]="detailedQueuePage() >= detailedQueueTotalPages() - 1"
+      >
+        Next
+      </button>
     </div>
 
     <ng-template #emptyQueue>

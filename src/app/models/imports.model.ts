@@ -50,3 +50,34 @@ export interface QueueImportResult {
   skippedCount: number;
   queuedItems: ImportQueueItem[];
 }
+
+export interface DatasetImportRequest {
+  datasetPath: string;
+  titleTypes: string[];
+  excludeAdult: boolean;
+  startYear: number | null;
+  endYear: number | null;
+  skipAlreadyImported: boolean;
+  skipAlreadyQueued: boolean;
+}
+
+export interface DatasetImportPreviewResult {
+  totalRowsScanned: number;
+  matchedCount: number;
+  alreadyQueuedCount: number;
+  alreadyImportedCount: number;
+  readyToQueueCount: number;
+}
+
+export interface QueueDatasetImportsRequest extends DatasetImportRequest {
+  maxToQueue: number | null;
+}
+
+export interface QueueDatasetImportsResult {
+  totalRowsScanned: number;
+  matchedCount: number;
+  alreadyQueuedCount: number;
+  alreadyImportedCount: number;
+  readyToQueueCount: number;
+  queuedCount: number;
+}

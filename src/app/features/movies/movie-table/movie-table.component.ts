@@ -13,10 +13,13 @@ type SortDirection = 'asc' | 'desc';
   styleUrls: ['./movie-table.component.scss']
 })
 export class MovieTableComponent {
+  private static readonly pageSize = 15;
+
   movies = input<Movie[]>([]);
   deleting = input(false);
   sortColumn = signal<SortColumn>('title');
   sortDirection = signal<SortDirection>('asc');
+  currentPage = signal(0);
   softDeleteRequested = output<number[]>();
   hardDeleteRequested = output<number[]>();
   detailsRequested = output<Movie>();
@@ -32,6 +35,15 @@ export class MovieTableComponent {
 
       if (nextSelectedIds.size !== selectedIds.size) {
         this.selectedMovieIds.set(nextSelectedIds);
+      }
+    });
+
+    effect(() => {
+      const lastPage = Math.max(0, Math.ceil(this.movies().length / MovieTableComponent.pageSize) - 1);
+      const currentPage = this.currentPage();
+
+      if (currentPage > lastPage) {
+        this.currentPage.set(lastPage);
       }
     });
   }
@@ -56,6 +68,15 @@ export class MovieTableComponent {
 
       return 0;
     });
+  });
+
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.sortedMovies().length / MovieTableComponent.pageSize))
+  );
+
+  pagedMovies = computed(() => {
+    const start = this.currentPage() * MovieTableComponent.pageSize;
+    return this.sortedMovies().slice(start, start + MovieTableComponent.pageSize);
   });
 
   selectedMovies = computed(() =>
@@ -123,6 +144,14 @@ export class MovieTableComponent {
     }
 
     return this.sortDirection() === 'asc' ? '↑' : '↓';
+  }
+
+  goToPreviousPage(): void {
+    this.currentPage.update((page) => Math.max(0, page - 1));
+  }
+
+  goToNextPage(): void {
+    this.currentPage.update((page) => Math.min(this.totalPages() - 1, page + 1));
   }
 
   private getSortableValue(movie: Movie, column: SortColumn): string {

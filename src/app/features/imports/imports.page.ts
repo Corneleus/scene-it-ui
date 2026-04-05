@@ -4,7 +4,14 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImportsService } from './imports.service';
-import { ImportQueueItem, ImportRunResult, QueueImportItem } from '../../models/imports.model';
+import {
+  DatasetImportPreviewResult,
+  DatasetImportRequest,
+  ImportQueueItem,
+  ImportRunResult,
+  QueueDatasetImportsRequest,
+  QueueImportItem,
+} from '../../models/imports.model';
 import { Movie } from '../../models/movies.model';
 import { MovieService } from '../movies/movies.service';
 
@@ -16,6 +23,10 @@ import { MovieService } from '../movies/movies.service';
   styleUrl: './imports.page.scss',
 })
 export class ImportsPage {
+  private static readonly defaultDatasetPath = 'C:\\Users\\Corne\\source\\repos\\IMDB DataSet\\title.basics.tsv.gz';
+  private static readonly currentItemsPageSize = 12;
+  private static readonly detailedQueuePageSize = 50;
+
   private readonly formBuilder = inject(FormBuilder);
   private readonly importsService = inject(ImportsService);
   private readonly destroyRef = inject(DestroyRef);
@@ -31,9 +42,47 @@ export class ImportsPage {
 
   readonly rowSearchResults = signal<Record<number, Movie[]>>({});
   readonly rowSearchLoading = signal<Record<number, boolean>>({});
+  readonly rowLookupResults = signal<Record<number, Movie | null>>({});
+  readonly rowLookupMessages = signal<Record<number, string>>({});
+  readonly datasetPreview = signal<DatasetImportPreviewResult | null>(null);
+  readonly datasetQueueSummary = signal<string>('');
+  readonly datasetPreviewLoading = signal(false);
+  readonly datasetQueueSubmitting = signal(false);
+  readonly currentItemsPage = signal(0);
+  readonly detailedQueuePage = signal(0);
 
   readonly queueForm = this.formBuilder.group({
     items: this.formBuilder.array([this.createQueueItemGroup()]),
+  });
+
+  readonly datasetTypeOptions = [
+    { controlName: 'movies', label: 'Movies', value: 'movie' },
+    { controlName: 'series', label: 'Series', value: 'tvSeries' },
+    { controlName: 'miniSeries', label: 'Mini Series', value: 'tvMiniSeries' },
+    { controlName: 'episodes', label: 'Episodes', value: 'tvEpisode' },
+    { controlName: 'shorts', label: 'Shorts', value: 'short' },
+    { controlName: 'videoGames', label: 'Video Games', value: 'videoGame' },
+  ] as const;
+
+  readonly datasetForm = this.formBuilder.group({
+    datasetPath: this.formBuilder.control(ImportsPage.defaultDatasetPath, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    movies: this.formBuilder.control(true, { nonNullable: true }),
+    series: this.formBuilder.control(false, { nonNullable: true }),
+    miniSeries: this.formBuilder.control(false, { nonNullable: true }),
+    episodes: this.formBuilder.control(false, { nonNullable: true }),
+    shorts: this.formBuilder.control(false, { nonNullable: true }),
+    videoGames: this.formBuilder.control(false, { nonNullable: true }),
+    excludeAdult: this.formBuilder.control(true, { nonNullable: true }),
+    startYear: this.formBuilder.control<number | null>(null),
+    endYear: this.formBuilder.control<number | null>(null),
+    skipAlreadyImported: this.formBuilder.control(true, { nonNullable: true }),
+    skipAlreadyQueued: this.formBuilder.control(true, { nonNullable: true }),
+    maxToQueue: this.formBuilder.control<number | null>(5000, {
+      validators: [Validators.min(1)],
+    }),
   });
 
   readonly runForm = this.formBuilder.group({
@@ -78,6 +127,20 @@ export class ImportsPage {
   readonly queueRows = computed(() =>
     this.itemsFormArray.controls.map((control) => control as FormGroup),
   );
+  readonly currentItemsTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.queueItems().length / ImportsPage.currentItemsPageSize)),
+  );
+  readonly currentItemsView = computed(() => {
+    const start = this.currentItemsPage() * ImportsPage.currentItemsPageSize;
+    return this.queueItems().slice(start, start + ImportsPage.currentItemsPageSize);
+  });
+  readonly detailedQueueTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.queueItems().length / ImportsPage.detailedQueuePageSize)),
+  );
+  readonly detailedQueueView = computed(() => {
+    const start = this.detailedQueuePage() * ImportsPage.detailedQueuePageSize;
+    return this.queueItems().slice(start, start + ImportsPage.detailedQueuePageSize);
+  });
 
   constructor() {
     this.refreshQueue();
@@ -94,8 +157,11 @@ export class ImportsPage {
     const group = this.createQueueItemGroup();
     this.itemsFormArray.push(group);
     this.watchQueueSearch(group);
-    this.rowSearchResults.update((state) => ({ ...state, [this.itemsFormArray.length - 1]: [] }));
-    this.rowSearchLoading.update((state) => ({ ...state, [this.itemsFormArray.length - 1]: false }));
+    const nextIndex = this.itemsFormArray.length - 1;
+    this.rowSearchResults.update((state) => ({ ...state, [nextIndex]: [] }));
+    this.rowSearchLoading.update((state) => ({ ...state, [nextIndex]: false }));
+    this.rowLookupResults.update((state) => ({ ...state, [nextIndex]: null }));
+    this.rowLookupMessages.update((state) => ({ ...state, [nextIndex]: '' }));
   }
 
   removeQueueRow(index: number): void {
@@ -103,6 +169,8 @@ export class ImportsPage {
       this.itemsFormArray.at(0).reset({ searchQuery: '', imdbLookup: '', imdbId: '', title: '' });
       this.rowSearchResults.set({ 0: [] });
       this.rowSearchLoading.set({ 0: false });
+      this.rowLookupResults.set({ 0: null });
+      this.rowLookupMessages.set({ 0: '' });
       return;
     }
 
@@ -119,6 +187,7 @@ export class ImportsPage {
     }
 
     this.rowSearchLoading.update((state) => ({ ...state, [index]: true }));
+    this.clearLookupState(index);
 
     this.movieService
       .searchOmdbApi(query)
@@ -142,6 +211,7 @@ export class ImportsPage {
       searchQuery: movie.title,
     });
     this.rowSearchResults.update((state) => ({ ...state, [index]: [] }));
+    this.clearLookupState(index);
   }
 
   queueImports(): void {
@@ -204,6 +274,50 @@ export class ImportsPage {
     this.runImportBatch(this.automationOptions().maxCountPerRun);
   }
 
+  previewDatasetImports(): void {
+    if (this.datasetForm.invalid || this.datasetPreviewLoading()) {
+      this.datasetForm.markAllAsTouched();
+      return;
+    }
+
+    this.datasetPreviewLoading.set(true);
+    this.datasetQueueSummary.set('');
+    this.feedbackMessage.set('');
+
+    this.importsService
+      .previewDataset(this.buildDatasetRequest())
+      .pipe(finalize(() => this.datasetPreviewLoading.set(false)))
+      .subscribe({
+        next: (result) => this.datasetPreview.set(result),
+        error: (error: Error) => this.setFeedback(error.message, 'error'),
+      });
+  }
+
+  queueDatasetImports(): void {
+    if (this.datasetForm.invalid || this.datasetQueueSubmitting()) {
+      this.datasetForm.markAllAsTouched();
+      return;
+    }
+
+    this.datasetQueueSubmitting.set(true);
+    this.feedbackMessage.set('');
+
+    this.importsService
+      .queueDataset(this.buildDatasetQueueRequest())
+      .pipe(finalize(() => this.datasetQueueSubmitting.set(false)))
+      .subscribe({
+        next: (result) => {
+          this.datasetPreview.set(result);
+          this.datasetQueueSummary.set(
+            `Queued ${result.queuedCount} dataset item(s) from ${result.readyToQueueCount} ready match(es).`,
+          );
+          this.setFeedback(`Queued ${result.queuedCount} dataset import item(s).`, 'success');
+          this.refreshQueue();
+        },
+        error: (error: Error) => this.setFeedback(error.message, 'error'),
+      });
+  }
+
   private runImportBatch(maxCount: number): void {
     this.runSubmitting.set(true);
     this.feedbackMessage.set('');
@@ -231,7 +345,10 @@ export class ImportsPage {
       .getQueue()
       .pipe(finalize(() => this.queueLoading.set(false)))
       .subscribe({
-        next: (items) => this.queueItems.set(items),
+        next: (items) => {
+          this.queueItems.set(items);
+          this.clampQueuePages(items.length);
+        },
         error: (error: Error) => this.setFeedback(error.message, 'error'),
       });
   }
@@ -262,6 +379,22 @@ export class ImportsPage {
 
   trackByMovie(_: number, movie: Movie): string {
     return movie.imdbId;
+  }
+
+  goToPreviousCurrentItemsPage(): void {
+    this.currentItemsPage.update((page) => Math.max(0, page - 1));
+  }
+
+  goToNextCurrentItemsPage(): void {
+    this.currentItemsPage.update((page) => Math.min(this.currentItemsTotalPages() - 1, page + 1));
+  }
+
+  goToPreviousDetailedQueuePage(): void {
+    this.detailedQueuePage.update((page) => Math.max(0, page - 1));
+  }
+
+  goToNextDetailedQueuePage(): void {
+    this.detailedQueuePage.update((page) => Math.min(this.detailedQueueTotalPages() - 1, page + 1));
   }
 
   private watchQueueSearch(group: FormGroup) {
@@ -304,6 +437,33 @@ export class ImportsPage {
     this.feedbackTone.set(tone);
   }
 
+  private buildDatasetRequest(): DatasetImportRequest {
+    const formValue = this.datasetForm.getRawValue();
+
+    return {
+      datasetPath: formValue.datasetPath.trim(),
+      titleTypes: this.getSelectedDatasetTitleTypes(),
+      excludeAdult: formValue.excludeAdult ?? true,
+      startYear: formValue.startYear ?? null,
+      endYear: formValue.endYear ?? null,
+      skipAlreadyImported: formValue.skipAlreadyImported ?? true,
+      skipAlreadyQueued: formValue.skipAlreadyQueued ?? true,
+    };
+  }
+
+  private buildDatasetQueueRequest(): QueueDatasetImportsRequest {
+    return {
+      ...this.buildDatasetRequest(),
+      maxToQueue: this.datasetForm.controls.maxToQueue.getRawValue() ?? null,
+    };
+  }
+
+  private getSelectedDatasetTitleTypes(): string[] {
+    return this.datasetTypeOptions
+      .filter((option) => this.datasetForm.controls[option.controlName].getRawValue())
+      .map((option) => option.value);
+  }
+
   updateAutomationSettings(): void {
     if (this.automationForm.invalid) {
       return;
@@ -325,21 +485,34 @@ export class ImportsPage {
     const imdbId = (group.controls.imdbLookup.value ?? '').trim();
 
     if (!imdbId) {
+      this.setLookupMessage(index, 'Enter an IMDb ID to look up.');
       return;
     }
 
     this.rowSearchLoading.update((state) => ({ ...state, [index]: true }));
+    this.rowSearchResults.update((state) => ({ ...state, [index]: [] }));
+    this.rowLookupMessages.update((state) => ({ ...state, [index]: '' }));
 
     this.movieService
       .getOmdbMovieById(imdbId)
       .pipe(finalize(() => this.rowSearchLoading.update((state) => ({ ...state, [index]: false }))))
       .subscribe({
         next: (movie) => {
-          this.selectSearchResult(index, movie);
+          group.patchValue({
+            imdbLookup: movie.imdbId,
+            imdbId: movie.imdbId,
+            title: movie.title,
+          });
+          this.rowLookupResults.update((state) => ({ ...state, [index]: movie }));
+          this.rowLookupMessages.update((state) => ({ ...state, [index]: '' }));
         },
         error: (error: Error) => {
-          this.rowSearchResults.update((state) => ({ ...state, [index]: [] }));
-          this.setFeedback(error.message, 'error');
+          group.patchValue({
+            imdbId: '',
+            title: '',
+          });
+          this.rowLookupResults.update((state) => ({ ...state, [index]: null }));
+          this.setLookupMessage(index, this.getLookupErrorMessage(error));
         },
       });
   }
@@ -351,35 +524,71 @@ export class ImportsPage {
   private initializeRowState(): void {
     const initialResults: Record<number, Movie[]> = {};
     const initialLoading: Record<number, boolean> = {};
+    const initialLookupResults: Record<number, Movie | null> = {};
+    const initialLookupMessages: Record<number, string> = {};
 
     this.itemsFormArray.controls.forEach((_, index) => {
       initialResults[index] = [];
       initialLoading[index] = false;
+      initialLookupResults[index] = null;
+      initialLookupMessages[index] = '';
     });
 
     this.rowSearchResults.set(initialResults);
     this.rowSearchLoading.set(initialLoading);
+    this.rowLookupResults.set(initialLookupResults);
+    this.rowLookupMessages.set(initialLookupMessages);
   }
 
   private reindexRowStateAfterRemoval(removedIndex: number): void {
     const currentResults = this.rowSearchResults();
     const currentLoading = this.rowSearchLoading();
+    const currentLookupResults = this.rowLookupResults();
+    const currentLookupMessages = this.rowLookupMessages();
     const nextResults: Record<number, Movie[]> = {};
     const nextLoading: Record<number, boolean> = {};
+    const nextLookupResults: Record<number, Movie | null> = {};
+    const nextLookupMessages: Record<number, string> = {};
 
     this.itemsFormArray.controls.forEach((_, nextIndex) => {
       const sourceIndex = nextIndex >= removedIndex ? nextIndex + 1 : nextIndex;
       nextResults[nextIndex] = currentResults[sourceIndex] ?? [];
       nextLoading[nextIndex] = currentLoading[sourceIndex] ?? false;
+      nextLookupResults[nextIndex] = currentLookupResults[sourceIndex] ?? null;
+      nextLookupMessages[nextIndex] = currentLookupMessages[sourceIndex] ?? '';
     });
 
     this.rowSearchResults.set(nextResults);
     this.rowSearchLoading.set(nextLoading);
+    this.rowLookupResults.set(nextLookupResults);
+    this.rowLookupMessages.set(nextLookupMessages);
   }
 
   private resetQueueForm(): void {
     this.queueForm.setControl('items', this.formBuilder.array([this.createQueueItemGroup()]));
     this.attachQueueSearchWatchers();
     this.initializeRowState();
+  }
+
+  private clearLookupState(index: number): void {
+    this.rowLookupResults.update((state) => ({ ...state, [index]: null }));
+    this.rowLookupMessages.update((state) => ({ ...state, [index]: '' }));
+  }
+
+  private setLookupMessage(index: number, message: string): void {
+    this.rowLookupResults.update((state) => ({ ...state, [index]: null }));
+    this.rowLookupMessages.update((state) => ({ ...state, [index]: message }));
+  }
+
+  private getLookupErrorMessage(error: Error): string {
+    return error.message === 'OMDb lookup failed.' ? 'That is not a valid IMDb ID.' : error.message;
+  }
+
+  private clampQueuePages(totalItems: number): void {
+    const currentItemsLastPage = Math.max(0, Math.ceil(totalItems / ImportsPage.currentItemsPageSize) - 1);
+    const detailedQueueLastPage = Math.max(0, Math.ceil(totalItems / ImportsPage.detailedQueuePageSize) - 1);
+
+    this.currentItemsPage.update((page) => Math.min(page, currentItemsLastPage));
+    this.detailedQueuePage.update((page) => Math.min(page, detailedQueueLastPage));
   }
 }

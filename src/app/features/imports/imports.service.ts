@@ -4,9 +4,13 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
+  DatasetImportPreviewResult,
+  DatasetImportRequest,
   ImportQueueItem,
   ImportRunResult,
   QueueImportItem,
+  QueueDatasetImportsRequest,
+  QueueDatasetImportsResult,
   QueueImportResult,
 } from '../../models/imports.model';
 
@@ -28,6 +32,18 @@ export class ImportsService {
     return this.http
       .post<QueueImportResult>(`${this.apiUrl}/queue`, { items })
       .pipe(catchError((error: unknown) => this.mapApiError(error, 'Unable to queue imports.')));
+  }
+
+  previewDataset(request: DatasetImportRequest): Observable<DatasetImportPreviewResult> {
+    return this.http
+      .post<DatasetImportPreviewResult>(`${this.apiUrl}/dataset/preview`, request)
+      .pipe(catchError((error: unknown) => this.mapApiError(error, 'Unable to preview dataset imports.')));
+  }
+
+  queueDataset(request: QueueDatasetImportsRequest): Observable<QueueDatasetImportsResult> {
+    return this.http
+      .post<QueueDatasetImportsResult>(`${this.apiUrl}/dataset/queue`, request)
+      .pipe(catchError((error: unknown) => this.mapApiError(error, 'Unable to queue dataset imports.')));
   }
 
   runImport(maxCount: number): Observable<ImportRunResult> {

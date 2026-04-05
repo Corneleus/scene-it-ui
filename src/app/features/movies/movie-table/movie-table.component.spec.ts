@@ -6,10 +6,11 @@ describe('MovieTableComponent', () => {
   let fixture: ComponentFixture<MovieTableComponent>;
   let component: MovieTableComponent;
 
-  const movies: Movie[] = [
-    { movieId: 1, title: 'Arrival', imdbId: 'tt2543164' },
-    { movieId: 2, title: 'Heat', imdbId: 'tt0113277' }
-  ];
+  const movies: Movie[] = Array.from({ length: 20 }, (_, index) => ({
+    movieId: index + 1,
+    title: `Movie ${String(index + 1).padStart(2, '0')}`,
+    imdbId: `tt${String(index + 1).padStart(7, '0')}`
+  }));
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -71,5 +72,30 @@ describe('MovieTableComponent', () => {
     fixture.detectChanges();
 
     expect(component.selectedMovies().map((movie) => movie.movieId)).toEqual([1]);
+  });
+
+  it('paginates the movie list', () => {
+    expect(component.totalPages()).toBe(2);
+    expect(component.pagedMovies().map((movie) => movie.movieId)).toEqual(
+      movies.slice(0, 15).map((movie) => movie.movieId)
+    );
+
+    component.goToNextPage();
+
+    expect(component.currentPage()).toBe(1);
+    expect(component.pagedMovies().map((movie) => movie.movieId)).toEqual(
+      movies.slice(15).map((movie) => movie.movieId)
+    );
+  });
+
+  it('clamps the current page when the movie list shrinks', () => {
+    component.goToNextPage();
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('movies', movies.slice(0, 5));
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.totalPages()).toBe(1);
   });
 });
