@@ -60,7 +60,6 @@ class MediaLibraryServiceStub {
   lookupByImdbId = vi.fn((imdbId: string) =>
     of({
       mediaItemId: 1,
-      movieId: 1,
       title: 'Batman Begins',
       imdbId,
     } satisfies MediaItem),
@@ -226,8 +225,8 @@ describe('ImportsPage', () => {
     const component = fixture.componentInstance;
     component.addQueueRow();
 
-    const firstResult: MediaItem = { mediaItemId: 1, movieId: 1, title: 'Arrival', imdbId: 'tt2543164' };
-    const secondResult: MediaItem = { mediaItemId: 2, movieId: 2, title: 'Heat', imdbId: 'tt0113277' };
+    const firstResult: MediaItem = { mediaItemId: 1, title: 'Arrival', imdbId: 'tt2543164' };
+    const secondResult: MediaItem = { mediaItemId: 2, title: 'Heat', imdbId: 'tt0113277' };
 
     component.rowSearchResults.set({ 0: [firstResult], 1: [secondResult] });
     component.rowSearchLoading.set({ 0: false, 1: true });

@@ -18,7 +18,10 @@
         <div class="results-list">
           @for (result of searchResults(); track result.imdbId) {
             <article class="result-card">
-              <img [src]="result.poster || 'https://placehold.co/96x140?text=No+Poster'" [alt]="result.title" />
+              <img
+                [src]="result.poster || fallbackPosterSrc"
+                [alt]="result.title"
+                (error)="replaceBrokenPoster($event)" />
 
               <div class="result-copy">
                 <h4>{{ result.title }}</h4>

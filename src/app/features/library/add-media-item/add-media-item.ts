@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild, ViewContainerRef, input } from '@angular/core';
+import { Component, ViewChild, ViewContainerRef, input, output } from '@angular/core';
 import { AddMediaItemModalComponent } from '../add-media-item-modal/add-media-item-modal';
 import { MediaKind } from '../../../models/media-item.model';
 
@@ -13,7 +13,7 @@ export class AddMediaItemComponent {
   triggerLabel = input('Add Media Item');
   itemLabel = input('media item');
   kind = input<MediaKind | null>(null);
-  @Output() mediaItemAdded = new EventEmitter<string>();
+  mediaItemAdded = output<string>();
 
   @ViewChild('modalHost', { read: ViewContainerRef, static: true })
   modalHost!: ViewContainerRef;

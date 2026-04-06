@@ -8,7 +8,6 @@ describe('MediaItemTableComponent', () => {
 
   const movies: MediaItem[] = Array.from({ length: 20 }, (_, index) => ({
     mediaItemId: index + 1,
-    movieId: index + 1,
     title: `Movie ${String(index + 1).padStart(2, '0')}`,
     imdbId: `tt${String(index + 1).padStart(7, '0')}`
   }));

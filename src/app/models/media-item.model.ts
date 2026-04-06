@@ -1,8 +1,11 @@
 export type MediaKind = 'movie' | 'series' | 'videoGame';
 
+const MOVIE_KIND_TOKENS = ['movie'] as const;
+const SERIES_KIND_TOKENS = ['series', 'tvseries', 'tvminiseries', 'miniseries'] as const;
+const VIDEO_GAME_KIND_TOKENS = ['videogame', 'game'] as const;
+
 export interface MediaItem {
   mediaItemId: number;
-  movieId?: number;
   title: string;
   year?: string | null;
   rated?: string | null;
@@ -27,34 +30,25 @@ export interface MediaItem {
   production?: string | null;
 }
 
-type MediaItemIdentifier = {
-  mediaItemId?: number;
-  movieId?: number;
-};
-
-export function withLegacyMovieId<T extends MediaItemIdentifier>(mediaItem: T): T & MediaItem {
-  const mediaItemId = mediaItem.mediaItemId ?? mediaItem.movieId ?? 0;
-
+export function normalizeMediaItem<T extends { poster?: string | null }>(mediaItem: T): T {
   return {
     ...mediaItem,
-    mediaItemId,
-    movieId: mediaItemId,
-    poster: normalizePosterUrl((mediaItem as { poster?: string | null }).poster),
-  } as T & MediaItem;
+    poster: normalizePosterUrl(mediaItem.poster),
+  };
 }
 
 export function normalizeMediaKind(type: string | null | undefined): MediaKind | null {
   const normalizedType = normalizeKindToken(type);
 
-  if (normalizedType === 'movie') {
+  if (MOVIE_KIND_TOKENS.includes(normalizedType as (typeof MOVIE_KIND_TOKENS)[number])) {
     return 'movie';
   }
 
-  if (normalizedType === 'videogame' || normalizedType === 'game') {
+  if (VIDEO_GAME_KIND_TOKENS.includes(normalizedType as (typeof VIDEO_GAME_KIND_TOKENS)[number])) {
     return 'videoGame';
   }
 
-  if (normalizedType === 'series' || normalizedType === 'tvseries' || normalizedType === 'tvminiseries' || normalizedType === 'miniseries') {
+  if (SERIES_KIND_TOKENS.includes(normalizedType as (typeof SERIES_KIND_TOKENS)[number])) {
     return 'series';
   }
 

@@ -5,7 +5,7 @@ import { MediaLibraryService } from '../../library/media-library.service';
 import { MediaItem } from '../../../models/media-item.model';
 
 class MediaLibraryServiceStub {
-  items: MediaItem[] = [{ mediaItemId: 1, movieId: 1, title: 'Arrival', imdbId: 'tt2543164' }];
+  items: MediaItem[] = [{ mediaItemId: 1, title: 'Arrival', imdbId: 'tt2543164' }];
   listItems = vi.fn(() => of(this.items));
   softDeleteItem = vi.fn(() => of(void 0));
   hardDeleteItem = vi.fn(() => of(void 0));
