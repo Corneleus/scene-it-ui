@@ -1,4 +1,41 @@
-.movie-table {
+.table-toolbar {
+  margin-bottom: 1rem;
+}
+
+.search-field {
+  display: grid;
+  gap: 0.45rem;
+  max-width: 28rem;
+}
+
+.search-field span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.search-field input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--surface-strong);
+}
+
+.search-field input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-field input:focus {
+  outline: none;
+  border-color: rgba(88, 199, 194, 0.7);
+  box-shadow: 0 0 0 3px rgba(88, 199, 194, 0.12);
+}
+
+.media-item-table {
   width: 100%;
   border-collapse: collapse;
   overflow: hidden;
@@ -7,14 +44,14 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
-.movie-table th,
-.movie-table td {
+.media-item-table th,
+.media-item-table td {
   padding: 0.95rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: left;
 }
 
-.movie-table th {
+.media-item-table th {
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -51,19 +88,19 @@
   cursor: pointer;
 }
 
-.movie-table tbody tr {
+.media-item-table tbody tr {
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.movie-table tbody tr:hover {
+.media-item-table tbody tr:hover {
   background-color: rgba(88, 199, 194, 0.08);
 }
 
-.movie-table tbody tr.selected {
+.media-item-table tbody tr.selected {
   background: linear-gradient(90deg, rgba(255, 140, 66, 0.16), rgba(88, 199, 194, 0.12));
 }
 
-.movie-table img.poster {
+.media-item-table img.poster {
   width: 56px;
   height: 82px;
   border-radius: 12px;
@@ -72,7 +109,7 @@
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
 }
 
-.movie-table input[type='checkbox'] {
+.media-item-table input[type='checkbox'] {
   width: 1rem;
   height: 1rem;
   accent-color: var(--accent);
@@ -146,7 +183,11 @@
 }
 
 @media (max-width: 768px) {
-  .movie-table {
+  .search-field {
+    max-width: none;
+  }
+
+  .media-item-table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;

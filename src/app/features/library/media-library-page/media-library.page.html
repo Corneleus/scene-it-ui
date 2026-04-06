@@ -1,0 +1,48 @@
+<div class="media-library-page">
+  <section class="page-hero">
+    <p class="eyebrow">Collection</p>
+    <h1>{{ heroTitle() }}</h1>
+    <p class="page-copy">{{ heroCopy() }}</p>
+  </section>
+
+  <section class="content-panel">
+    <div class="panel-toolbar">
+      <div>
+        <h2>{{ panelTitle() }}</h2>
+        <p>{{ loadedCountText() }}</p>
+      </div>
+      <app-add-media-item
+        [triggerLabel]="triggerLabel()"
+        [itemLabel]="itemLabel()"
+        [kind]="kind()"
+        (mediaItemAdded)="handleMediaItemAdded($event)"></app-add-media-item>
+    </div>
+
+    <p class="status-copy" *ngIf="deleteInProgress()">{{ selectionStatusMessage() }}</p>
+    <p
+      class="status-copy"
+      [class.error]="feedbackTone() === 'error'"
+      [class.success]="feedbackTone() === 'success'"
+      *ngIf="feedbackMessage()">
+      {{ feedbackMessage() }}
+    </p>
+
+    <app-media-item-table
+      [items]="items()"
+      [deleting]="deleteInProgress()"
+      [searchLabel]="searchLabel()"
+      [itemLabelPlural]="itemLabelPlural()"
+      [selectedLabel]="selectedLabel()"
+      (detailsRequested)="showDetails($event)"
+      (softDeleteRequested)="softDeleteItems($event)"
+      (hardDeleteRequested)="hardDeleteItems($event)">
+    </app-media-item-table>
+  </section>
+
+  <app-media-item-details-modal
+    *ngIf="detailsItem()"
+    [item]="detailsItem()!"
+    [detailTitle]="detailTitle()"
+    (closed)="closeDetails()">
+  </app-media-item-details-modal>
+</div>

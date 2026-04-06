@@ -1,4 +1,4 @@
-.add-movie-button {
+.add-media-item-button {
   padding: 0.9rem 1.2rem;
   border: 0;
   border-radius: 999px;
@@ -10,7 +10,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.add-movie-button:hover {
+.add-media-item-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 22px 36px rgba(255, 107, 44, 0.34);
 }

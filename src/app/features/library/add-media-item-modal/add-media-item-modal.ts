@@ -12,41 +12,44 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MovieService } from '../movies.service';
-import { Movie } from '../../../models/movies.model';
+import { MediaLibraryService } from '../../library/media-library.service';
+import { MediaItem, MediaKind } from '../../../models/media-item.model';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
-  selector: 'app-add-movie-modal',
+  selector: 'app-add-media-item-modal',
   standalone: true,
   imports: [ReactiveFormsModule],
-  templateUrl: './add-movie-modal.html',
-  styleUrls: ['./add-movie-modal.scss']
+  templateUrl: './add-media-item-modal.html',
+  styleUrls: ['./add-media-item-modal.scss']
 })
-export class AddMovieModalComponent implements AfterViewInit {
+export class AddMediaItemModalComponent implements AfterViewInit {
+  private static readonly minSearchLength = 2;
   private readonly destroyRef = inject(DestroyRef);
-  private readonly movieService = inject(MovieService);
+  private readonly mediaLibraryService = inject(MediaLibraryService);
   private latestSearchId = 0;
+  kind: MediaKind | null = null;
+  itemLabel = 'media item';
 
   @ViewChild('searchInput')
   private searchInput?: ElementRef<HTMLInputElement>;
 
-  movieForm = new FormGroup({
+  mediaItemForm = new FormGroup({
     title: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     year: new FormControl(''),
   });
 
-  searchResults = signal<Movie[]>([]);
+  searchResults = signal<MediaItem[]>([]);
   searchInFlight = signal(false);
   addInFlightId = signal<string | null>(null);
   searchMessage = signal('');
 
   @Output() close = new EventEmitter<void>();
-  @Output() movieAdded = new EventEmitter<string>();
+  @Output() mediaItemAdded = new EventEmitter<string>();
 
   constructor() {
-    this.movieForm.controls.title.valueChanges
+    this.mediaItemForm.controls.title.valueChanges
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
@@ -62,6 +65,13 @@ export class AddMovieModalComponent implements AfterViewInit {
           return;
         }
 
+        if (title.length < AddMediaItemModalComponent.minSearchLength) {
+          this.searchResults.set([]);
+          this.searchMessage.set(`Enter at least ${AddMediaItemModalComponent.minSearchLength} characters to search.`);
+          this.searchInFlight.set(false);
+          return;
+        }
+
         this.runSearch(title);
       });
   }
@@ -71,10 +81,17 @@ export class AddMovieModalComponent implements AfterViewInit {
   }
 
   onSearch(): void {
-    const title = this.movieForm.controls.title.value.trim();
+    const title = this.mediaItemForm.controls.title.value.trim();
 
     if (!title) {
       this.searchMessage.set('Enter a title to search.');
+      this.searchResults.set([]);
+      this.focusSearchInput();
+      return;
+    }
+
+    if (title.length < AddMediaItemModalComponent.minSearchLength) {
+      this.searchMessage.set(`Enter at least ${AddMediaItemModalComponent.minSearchLength} characters to search.`);
       this.searchResults.set([]);
       this.focusSearchInput();
       return;
@@ -84,7 +101,7 @@ export class AddMovieModalComponent implements AfterViewInit {
     this.focusSearchInput();
   }
 
-  addMovieFromResult(result: Movie): void {
+  addMediaItemFromResult(result: MediaItem): void {
     if (!result.imdbId) {
       this.searchMessage.set('That result cannot be added because it is missing an IMDb ID.');
       return;
@@ -93,14 +110,14 @@ export class AddMovieModalComponent implements AfterViewInit {
     this.addInFlightId.set(result.imdbId);
     this.searchMessage.set('');
 
-    this.movieService.getOmdbMovieById(result.imdbId)
+    this.mediaLibraryService.lookupByImdbId(result.imdbId)
       .pipe(
-        switchMap((movie) => this.movieService.addMovie(movie)),
+        switchMap((mediaItem) => this.mediaLibraryService.addItem(mediaItem)),
         finalize(() => this.addInFlightId.set(null))
       )
       .subscribe({
-        next: (movie) => {
-          this.movieAdded.emit(movie.title);
+        next: (mediaItem) => {
+          this.mediaItemAdded.emit(mediaItem.title);
           this.onClose();
         },
         error: (error: unknown) => {
@@ -124,7 +141,7 @@ export class AddMovieModalComponent implements AfterViewInit {
     this.searchInFlight.set(true);
     this.searchMessage.set('');
 
-    this.movieService.searchOmdbApi(title)
+    this.mediaLibraryService.searchCatalog(title, this.kind ?? undefined)
       .pipe(finalize(() => this.searchInFlight.set(false)))
       .subscribe({
         next: (results) => {

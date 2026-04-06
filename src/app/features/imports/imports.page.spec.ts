@@ -2,14 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ImportsPage } from './imports.page';
 import { ImportsService } from './imports.service';
-import { MovieService } from '../movies/movies.service';
+import { MediaLibraryService } from '../library/media-library.service';
 import {
   DatasetImportPreviewResult,
   ImportQueueItem,
   ImportRunResult,
   QueueImportResult,
 } from '../../models/imports.model';
-import { Movie } from '../../models/movies.model';
+import { MediaItem } from '../../models/media-item.model';
 
 class ImportsServiceStub {
   getQueue = vi.fn(() => of([] as ImportQueueItem[]));
@@ -55,14 +55,15 @@ class ImportsServiceStub {
   );
 }
 
-class MovieServiceStub {
-  searchOmdbApi = vi.fn(() => of([] as Movie[]));
-  getOmdbMovieById = vi.fn((imdbId: string) =>
+class MediaLibraryServiceStub {
+  searchCatalog = vi.fn(() => of([] as MediaItem[]));
+  lookupByImdbId = vi.fn((imdbId: string) =>
     of({
+      mediaItemId: 1,
       movieId: 1,
       title: 'Batman Begins',
       imdbId,
-    } satisfies Movie),
+    } satisfies MediaItem),
   );
 }
 
@@ -100,17 +101,17 @@ function createQueueItem(importQueueId: number): ImportQueueItem {
 
 describe('ImportsPage', () => {
   let importsService: ImportsServiceStub;
-  let movieService: MovieServiceStub;
+  let mediaLibraryService: MediaLibraryServiceStub;
 
   beforeEach(async () => {
     importsService = new ImportsServiceStub();
-    movieService = new MovieServiceStub();
+    mediaLibraryService = new MediaLibraryServiceStub();
 
     await TestBed.configureTestingModule({
       imports: [ImportsPage],
       providers: [
         { provide: ImportsService, useValue: importsService },
-        { provide: MovieService, useValue: movieService },
+        { provide: MediaLibraryService, useValue: mediaLibraryService },
       ],
     }).compileComponents();
   });
@@ -165,7 +166,7 @@ describe('ImportsPage', () => {
 
     component.lookupImdb(0);
 
-    expect(movieService.getOmdbMovieById).toHaveBeenCalledWith('tt0372784');
+    expect(mediaLibraryService.lookupByImdbId).toHaveBeenCalledWith('tt0372784');
     expect(row.get('imdbId')?.value).toBe('tt0372784');
     expect(row.get('title')?.value).toBe('Batman Begins');
     expect(row.get('searchQuery')?.value).toBe('Batman');
@@ -174,7 +175,7 @@ describe('ImportsPage', () => {
   });
 
   it('shows an inline invalid-id message when IMDb lookup fails', () => {
-    movieService.getOmdbMovieById = vi.fn(() =>
+    mediaLibraryService.lookupByImdbId = vi.fn(() =>
       throwError(() => new Error('OMDb lookup failed.')),
     );
 
@@ -215,7 +216,7 @@ describe('ImportsPage', () => {
     resetRow.get('searchQuery')?.setValue('Heat');
     vi.advanceTimersByTime(300);
 
-    expect(movieService.searchOmdbApi).toHaveBeenCalledWith('Heat');
+    expect(mediaLibraryService.searchCatalog).toHaveBeenCalledWith('Heat');
   });
 
   it('reindexes row search state when removing a row', () => {
@@ -225,8 +226,8 @@ describe('ImportsPage', () => {
     const component = fixture.componentInstance;
     component.addQueueRow();
 
-    const firstResult: Movie = { movieId: 1, title: 'Arrival', imdbId: 'tt2543164' };
-    const secondResult: Movie = { movieId: 2, title: 'Heat', imdbId: 'tt0113277' };
+    const firstResult: MediaItem = { mediaItemId: 1, movieId: 1, title: 'Arrival', imdbId: 'tt2543164' };
+    const secondResult: MediaItem = { mediaItemId: 2, movieId: 2, title: 'Heat', imdbId: 'tt0113277' };
 
     component.rowSearchResults.set({ 0: [firstResult], 1: [secondResult] });
     component.rowSearchLoading.set({ 0: false, 1: true });
