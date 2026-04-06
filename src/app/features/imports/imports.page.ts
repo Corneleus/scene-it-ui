@@ -12,8 +12,8 @@ import {
   QueueDatasetImportsRequest,
   QueueImportItem,
 } from '../../models/imports.model';
-import { Movie } from '../../models/movies.model';
-import { MovieService } from '../movies/movies.service';
+import { MediaItem } from '../../models/media-item.model';
+import { MediaLibraryService } from '../library/media-library.service';
 
 @Component({
   selector: 'app-imports-page',
@@ -40,9 +40,9 @@ export class ImportsPage {
   readonly feedbackMessage = signal('');
   readonly feedbackTone = signal<'success' | 'error'>('success');
 
-  readonly rowSearchResults = signal<Record<number, Movie[]>>({});
+  readonly rowSearchResults = signal<Record<number, MediaItem[]>>({});
   readonly rowSearchLoading = signal<Record<number, boolean>>({});
-  readonly rowLookupResults = signal<Record<number, Movie | null>>({});
+  readonly rowLookupResults = signal<Record<number, MediaItem | null>>({});
   readonly rowLookupMessages = signal<Record<number, string>>({});
   readonly datasetPreview = signal<DatasetImportPreviewResult | null>(null);
   readonly datasetQueueSummary = signal<string>('');
@@ -122,7 +122,7 @@ export class ImportsPage {
     () => this.queueItems().filter((item) => item.status.toLowerCase() === 'failed').length,
   );
 
-  private readonly movieService = inject(MovieService);
+  private readonly mediaLibraryService = inject(MediaLibraryService);
 
   readonly queueRows = computed(() =>
     this.itemsFormArray.controls.map((control) => control as FormGroup),
@@ -189,11 +189,11 @@ export class ImportsPage {
     this.rowSearchLoading.update((state) => ({ ...state, [index]: true }));
     this.clearLookupState(index);
 
-    this.movieService
-      .searchOmdbApi(query)
+    this.mediaLibraryService
+      .searchCatalog(query)
       .pipe(finalize(() => this.rowSearchLoading.update((state) => ({ ...state, [index]: false }))))
       .subscribe({
-        next: (results) => {
+        next: (results: MediaItem[]) => {
           this.rowSearchResults.update((state) => ({ ...state, [index]: results }));
         },
         error: (error: Error) => {
@@ -203,7 +203,7 @@ export class ImportsPage {
       });
   }
 
-  selectSearchResult(index: number, movie: Movie): void {
+  selectSearchResult(index: number, movie: MediaItem): void {
     this.itemsFormArray.at(index).patchValue({
       imdbLookup: movie.imdbId,
       imdbId: movie.imdbId,
@@ -377,7 +377,7 @@ export class ImportsPage {
     return run.importRunId;
   }
 
-  trackByMovie(_: number, movie: Movie): string {
+  trackByMovie(_: number, movie: MediaItem): string {
     return movie.imdbId;
   }
 
@@ -493,11 +493,11 @@ export class ImportsPage {
     this.rowSearchResults.update((state) => ({ ...state, [index]: [] }));
     this.rowLookupMessages.update((state) => ({ ...state, [index]: '' }));
 
-    this.movieService
-      .getOmdbMovieById(imdbId)
+    this.mediaLibraryService
+      .lookupByImdbId(imdbId)
       .pipe(finalize(() => this.rowSearchLoading.update((state) => ({ ...state, [index]: false }))))
       .subscribe({
-        next: (movie) => {
+        next: (movie: MediaItem) => {
           group.patchValue({
             imdbLookup: movie.imdbId,
             imdbId: movie.imdbId,
@@ -522,9 +522,9 @@ export class ImportsPage {
   }
 
   private initializeRowState(): void {
-    const initialResults: Record<number, Movie[]> = {};
+    const initialResults: Record<number, MediaItem[]> = {};
     const initialLoading: Record<number, boolean> = {};
-    const initialLookupResults: Record<number, Movie | null> = {};
+    const initialLookupResults: Record<number, MediaItem | null> = {};
     const initialLookupMessages: Record<number, string> = {};
 
     this.itemsFormArray.controls.forEach((_, index) => {
@@ -545,9 +545,9 @@ export class ImportsPage {
     const currentLoading = this.rowSearchLoading();
     const currentLookupResults = this.rowLookupResults();
     const currentLookupMessages = this.rowLookupMessages();
-    const nextResults: Record<number, Movie[]> = {};
+    const nextResults: Record<number, MediaItem[]> = {};
     const nextLoading: Record<number, boolean> = {};
-    const nextLookupResults: Record<number, Movie | null> = {};
+    const nextLookupResults: Record<number, MediaItem | null> = {};
     const nextLookupMessages: Record<number, string> = {};
 
     this.itemsFormArray.controls.forEach((_, nextIndex) => {

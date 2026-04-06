@@ -13,6 +13,16 @@ export const routes: Routes = [
       import('./features/movies/movie-page/movies.page').then((module) => module.MoviesPage),
   },
   {
+    path: 'series',
+    loadComponent: () =>
+      import('./features/series/series.page').then((module) => module.SeriesPage),
+  },
+  {
+    path: 'video-games',
+    loadComponent: () =>
+      import('./features/video-games/video-games.page').then((module) => module.VideoGamesPage),
+  },
+  {
     path: 'imports',
     loadComponent: () =>
       import('./features/imports/imports.page').then((module) => module.ImportsPage),

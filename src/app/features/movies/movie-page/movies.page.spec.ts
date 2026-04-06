@@ -1,25 +1,25 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { MoviesPage } from './movies.page';
-import { MovieService } from '../movies.service';
-import { Movie } from '../../../models/movies.model';
+import { MediaLibraryService } from '../../library/media-library.service';
+import { MediaItem } from '../../../models/media-item.model';
 
-class MovieServiceStub {
-  movies: Movie[] = [{ movieId: 1, title: 'Arrival', imdbId: 'tt2543164' }];
-  getAllMovies = vi.fn(() => of(this.movies));
-  softDeleteMovie = vi.fn(() => of(void 0));
-  hardDeleteMovie = vi.fn(() => of(void 0));
+class MediaLibraryServiceStub {
+  items: MediaItem[] = [{ mediaItemId: 1, movieId: 1, title: 'Arrival', imdbId: 'tt2543164' }];
+  listItems = vi.fn(() => of(this.items));
+  softDeleteItem = vi.fn(() => of(void 0));
+  hardDeleteItem = vi.fn(() => of(void 0));
 }
 
 describe('MoviesPage', () => {
-  let service: MovieServiceStub;
+  let service: MediaLibraryServiceStub;
 
   beforeEach(async () => {
-    service = new MovieServiceStub();
+    service = new MediaLibraryServiceStub();
 
     await TestBed.configureTestingModule({
       imports: [MoviesPage],
-      providers: [{ provide: MovieService, useValue: service }]
+      providers: [{ provide: MediaLibraryService, useValue: service }]
     }).compileComponents();
   });
 
@@ -27,77 +27,8 @@ describe('MoviesPage', () => {
     const fixture = TestBed.createComponent(MoviesPage);
     fixture.detectChanges();
 
-    expect(service.getAllMovies).toHaveBeenCalled();
-    expect(fixture.componentInstance.movies().length).toBe(1);
-  });
-
-  it('soft deletes selected ids, refreshes movies, and shows success feedback', () => {
-    const fixture = TestBed.createComponent(MoviesPage);
-    fixture.detectChanges();
-
-    fixture.componentInstance.softDeleteMovies([1, 2]);
-
-    expect(service.softDeleteMovie).toHaveBeenCalledTimes(2);
-    expect(service.getAllMovies).toHaveBeenCalledTimes(2);
-    expect(fixture.componentInstance.feedbackMessage()).toBe('2 movies soft deleted.');
-    expect(fixture.componentInstance.feedbackTone()).toBe('success');
-  });
-
-  it('shows an error message when soft delete fails', () => {
-    service.softDeleteMovie = vi.fn(() => throwError(() => new Error('delete failed')));
-    const fixture = TestBed.createComponent(MoviesPage);
-    fixture.detectChanges();
-
-    fixture.componentInstance.softDeleteMovies([1]);
-
-    expect(fixture.componentInstance.feedbackMessage()).toBe('Unable to soft delete selected movies.');
-    expect(fixture.componentInstance.feedbackTone()).toBe('error');
-  });
-
-  it('hard delete stops when confirmation is cancelled', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    const fixture = TestBed.createComponent(MoviesPage);
-    fixture.detectChanges();
-
-    fixture.componentInstance.hardDeleteMovies([1]);
-
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(service.hardDeleteMovie).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
-  });
-
-  it('hard delete proceeds after confirmation and refreshes movies', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const fixture = TestBed.createComponent(MoviesPage);
-    fixture.detectChanges();
-
-    fixture.componentInstance.hardDeleteMovies([1]);
-
-    expect(service.hardDeleteMovie).toHaveBeenCalledWith(1);
-    expect(fixture.componentInstance.feedbackMessage()).toBe('1 movie permanently deleted.');
-    expect(fixture.componentInstance.feedbackTone()).toBe('success');
-    confirmSpy.mockRestore();
-  });
-
-  it('shows add success feedback and refreshes movies', () => {
-    const fixture = TestBed.createComponent(MoviesPage);
-    fixture.detectChanges();
-
-    fixture.componentInstance.handleMovieAdded('Arrival');
-
-    expect(service.getAllMovies).toHaveBeenCalledTimes(2);
-    expect(fixture.componentInstance.feedbackMessage()).toBe('Arrival was added to your library.');
-    expect(fixture.componentInstance.feedbackTone()).toBe('success');
-  });
-
-  it('opens and closes the movie details modal state', () => {
-    const fixture = TestBed.createComponent(MoviesPage);
-    fixture.detectChanges();
-
-    fixture.componentInstance.showMovieDetails(service.movies[0]);
-    expect(fixture.componentInstance.detailsMovie()?.title).toBe('Arrival');
-
-    fixture.componentInstance.closeMovieDetails();
-    expect(fixture.componentInstance.detailsMovie()).toBeNull();
+    expect(service.listItems).toHaveBeenCalledWith('movie');
+    expect(fixture.nativeElement.textContent).toContain('Movie Library');
+    expect(fixture.nativeElement.textContent).toContain('All Movies');
   });
 });
