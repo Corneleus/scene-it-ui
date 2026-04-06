@@ -7,8 +7,9 @@
     <div class="details-hero">
       <div class="poster-frame">
         <img
-          [src]="item().poster || 'https://placehold.co/360x540?text=No+Poster'"
+          [src]="item().poster || fallbackPosterSrc"
           [alt]="item().title"
+          (error)="replaceBrokenPoster($event)"
         />
       </div>
 
@@ -16,33 +17,42 @@
         <p class="eyebrow">{{ detailTitle() }}</p>
         <h2 id="media-item-details-title">{{ item().title }}</h2>
 
-        <div class="fact-list" *ngIf="summaryFacts().length">
-          <span class="fact-chip" *ngFor="let fact of summaryFacts()">
-            <strong>{{ fact.label }}</strong>
-            <span>{{ fact.value }}</span>
-          </span>
-        </div>
+        @if (summaryFacts().length) {
+          <div class="fact-list">
+            @for (fact of summaryFacts(); track fact.label) {
+              <span class="fact-chip">
+                <strong>{{ fact.label }}</strong>
+                <span>{{ fact.value }}</span>
+              </span>
+            }
+          </div>
+        }
 
-        <p class="plot-copy" *ngIf="item().plot; else noPlot">
-          {{ item().plot }}
-        </p>
-
-        <ng-template #noPlot>
+        @if (item().plot) {
+          <p class="plot-copy">
+            {{ item().plot }}
+          </p>
+        } @else {
           <p class="plot-copy empty-copy">No plot summary is available for this title yet.</p>
-        </ng-template>
+        }
       </div>
     </div>
 
-    <div class="detail-grid" *ngIf="detailGroups().length">
-      <article class="detail-card" *ngFor="let detail of detailGroups()">
-        <p class="detail-label">{{ detail.label }}</p>
-        <p class="detail-value">
-          <ng-container *ngIf="detail.label === 'Released' && item().released; else rawValue">
-            {{ item().released | date: 'MMMM d, y' }}
-          </ng-container>
-          <ng-template #rawValue>{{ detail.value }}</ng-template>
-        </p>
-      </article>
-    </div>
+    @if (detailGroups().length) {
+      <div class="detail-grid">
+        @for (detail of detailGroups(); track detail.label) {
+          <article class="detail-card">
+            <p class="detail-label">{{ detail.label }}</p>
+            <p class="detail-value">
+              @if (detail.label === 'Released' && item().released) {
+                {{ item().released | date: 'MMMM d, y' }}
+              } @else {
+                {{ detail.value }}
+              }
+            </p>
+          </article>
+        }
+      </div>
+    }
   </section>
 </div>

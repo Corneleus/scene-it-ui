@@ -1,6 +1,7 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MediaItem } from '../../../models/media-item.model';
+import { FALLBACK_POSTER_SRC, replaceBrokenPoster } from '../poster-fallback';
 
 type SortColumn = 'title' | 'genre' | 'year' | 'rated';
 type SortDirection = 'asc' | 'desc';
@@ -14,6 +15,8 @@ type SortDirection = 'asc' | 'desc';
 })
 export class MediaItemTableComponent {
   private static readonly pageSize = 15;
+  readonly fallbackPosterSrc = FALLBACK_POSTER_SRC;
+  readonly replaceBrokenPoster = replaceBrokenPoster;
 
   items = input<MediaItem[]>([]);
   deleting = input(false);

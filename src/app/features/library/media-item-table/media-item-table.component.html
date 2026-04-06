@@ -40,28 +40,36 @@
   </thead>
 
   <tbody>
-    <tr *ngFor="let item of pagedItems()"
+    @for (item of pagedItems(); track item.mediaItemId) {
+      <tr
         (click)="toggleSelection(item)"
         [class.selected]="isSelected(item)">
       
-      <!-- Multi-select checkbox -->
-      <td>
-        <input type="checkbox"
-               [checked]="isSelected(item)"
-               (click)="$event.stopPropagation(); toggleSelection(item)" />
-      </td>
+        <!-- Multi-select checkbox -->
+        <td>
+          <input type="checkbox"
+                 [checked]="isSelected(item)"
+                 (click)="$event.stopPropagation(); toggleSelection(item)" />
+        </td>
 
-      <td><img [src]="item.poster" [alt]="item.title" class="poster"/></td>
-      <td>{{ item.title }}</td>
-      <td>{{ item.genre }}</td>
-      <td>{{ item.year }}</td>
-      <td>{{ item.rated }}</td>
-      <td>
-        <button type="button" class="details-button" (click)="$event.stopPropagation(); openDetails(item)">
-          View Details
-        </button>
-      </td>
-    </tr>
+        <td>
+          <img
+            [src]="item.poster || fallbackPosterSrc"
+            [alt]="item.title"
+            class="poster"
+            (error)="replaceBrokenPoster($event)" />
+        </td>
+        <td>{{ item.title }}</td>
+        <td>{{ item.genre }}</td>
+        <td>{{ item.year }}</td>
+        <td>{{ item.rated }}</td>
+        <td>
+          <button type="button" class="details-button" (click)="$event.stopPropagation(); openDetails(item)">
+            View Details
+          </button>
+        </td>
+      </tr>
+    }
   </tbody>
 </table>
 
@@ -84,23 +92,29 @@
   </div>
 </div>
 
-<p class="page-copy" *ngIf="!sortedItems().length">
-  No {{ itemLabelPlural() }} match your search.
-</p>
+@if (!sortedItems().length) {
+  <p class="page-copy">
+    No {{ itemLabelPlural() }} match your search.
+  </p>
+}
 
-<!-- Selected Movies Panel -->
-<div class="mt-3" *ngIf="selectedItems().length > 0">
-  <h5>{{ selectedLabel() }}</h5>
-  <ul>
-    <li *ngFor="let item of selectedItems()">{{ item.title }} ({{ item.year }})</li>
-  </ul>
-  <div class="selection-actions">
-    <button type="button" class="action-button" (click)="clearSelection()" [disabled]="deleting()">Clear All</button>
-    <button type="button" class="action-button soft-delete-button" (click)="requestSoftDelete()" [disabled]="deleting()">
-      Soft Delete Selected
-    </button>
-    <button type="button" class="action-button hard-delete-button" (click)="requestHardDelete()" [disabled]="deleting()">
-      Hard Delete Selected
-    </button>
+<!-- Selected Items Panel -->
+@if (selectedItems().length > 0) {
+  <div class="mt-3">
+    <h5>{{ selectedLabel() }}</h5>
+    <ul>
+      @for (item of selectedItems(); track item.mediaItemId) {
+        <li>{{ item.title }} ({{ item.year }})</li>
+      }
+    </ul>
+    <div class="selection-actions">
+      <button type="button" class="action-button" (click)="clearSelection()" [disabled]="deleting()">Clear All</button>
+      <button type="button" class="action-button soft-delete-button" (click)="requestSoftDelete()" [disabled]="deleting()">
+        Soft Delete Selected
+      </button>
+      <button type="button" class="action-button hard-delete-button" (click)="requestHardDelete()" [disabled]="deleting()">
+        Hard Delete Selected
+      </button>
+    </div>
   </div>
-</div>
+}

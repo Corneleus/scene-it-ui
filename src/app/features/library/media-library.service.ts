@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { MediaItem, MediaKind, withLegacyMovieId } from '../../models/media-item.model';
+import { MediaItem, MediaKind, normalizeMediaItem } from '../../models/media-item.model';
 
 @Injectable({
   providedIn: 'root',
@@ -17,11 +17,11 @@ export class MediaLibraryService {
       .get<MediaItem[]>(this.apiUrl, {
         params: kind ? { kind } : {},
       })
-      .pipe(map((items) => items.map(withLegacyMovieId)));
+      .pipe(map((items) => items.map(normalizeMediaItem)));
   }
 
   addItem(item: MediaItem): Observable<MediaItem> {
-    return this.http.post<MediaItem>(this.apiUrl, item).pipe(map(withLegacyMovieId));
+    return this.http.post<MediaItem>(this.apiUrl, item).pipe(map(normalizeMediaItem));
   }
 
   softDeleteItem(id: number): Observable<void> {
@@ -37,39 +37,15 @@ export class MediaLibraryService {
       .get<MediaItem[]>(`${this.apiUrl}/search`, {
         params: kind ? { query, kind } : { query },
       })
-      .pipe(map((items) => items.map(withLegacyMovieId)))
+      .pipe(map((items) => items.map(normalizeMediaItem)))
       .pipe(catchError((error: unknown) => this.mapApiError(error, 'OMDb search failed.')));
   }
 
   lookupByImdbId(id: string): Observable<MediaItem> {
     return this.http
       .get<MediaItem>(`${this.apiUrl}/lookup/${encodeURIComponent(id)}`)
-      .pipe(map(withLegacyMovieId))
+      .pipe(map(normalizeMediaItem))
       .pipe(catchError((error: unknown) => this.mapApiError(error, 'OMDb lookup failed.')));
-  }
-
-  getAllMovies(): Observable<MediaItem[]> {
-    return this.listItems('movie');
-  }
-
-  addMovie(item: MediaItem): Observable<MediaItem> {
-    return this.addItem(item);
-  }
-
-  softDeleteMovie(id: number): Observable<void> {
-    return this.softDeleteItem(id);
-  }
-
-  hardDeleteMovie(id: number): Observable<void> {
-    return this.hardDeleteItem(id);
-  }
-
-  searchOmdbApi(query: string): Observable<MediaItem[]> {
-    return this.searchCatalog(query, 'movie');
-  }
-
-  getOmdbMovieById(id: string): Observable<MediaItem> {
-    return this.lookupByImdbId(id);
   }
 
   private mapApiError(error: unknown, fallbackMessage: string) {

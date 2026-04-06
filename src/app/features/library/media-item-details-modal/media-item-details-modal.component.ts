@@ -1,6 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, HostListener, input, output } from '@angular/core';
 import { MediaItem } from '../../../models/media-item.model';
+import { FALLBACK_POSTER_SRC, replaceBrokenPoster } from '../poster-fallback';
 
 @Component({
   selector: 'app-media-item-details-modal',
@@ -10,6 +11,8 @@ import { MediaItem } from '../../../models/media-item.model';
   styleUrls: ['./media-item-details-modal.component.scss']
 })
 export class MediaItemDetailsModalComponent {
+  readonly fallbackPosterSrc = FALLBACK_POSTER_SRC;
+  readonly replaceBrokenPoster = replaceBrokenPoster;
   item = input.required<MediaItem>();
   detailTitle = input('Media Item Details');
   closed = output<void>();

@@ -3,11 +3,10 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  EventEmitter,
   HostListener,
-  Output,
   ViewChild,
   inject,
+  output,
   signal
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -16,6 +15,7 @@ import { MediaLibraryService } from '../../library/media-library.service';
 import { MediaItem, MediaKind } from '../../../models/media-item.model';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FALLBACK_POSTER_SRC, replaceBrokenPoster } from '../poster-fallback';
 
 @Component({
   selector: 'app-add-media-item-modal',
@@ -26,6 +26,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class AddMediaItemModalComponent implements AfterViewInit {
   private static readonly minSearchLength = 2;
+  readonly fallbackPosterSrc = FALLBACK_POSTER_SRC;
+  readonly replaceBrokenPoster = replaceBrokenPoster;
   private readonly destroyRef = inject(DestroyRef);
   private readonly mediaLibraryService = inject(MediaLibraryService);
   private latestSearchId = 0;
@@ -45,8 +47,8 @@ export class AddMediaItemModalComponent implements AfterViewInit {
   addInFlightId = signal<string | null>(null);
   searchMessage = signal('');
 
-  @Output() close = new EventEmitter<void>();
-  @Output() mediaItemAdded = new EventEmitter<string>();
+  close = output<void>();
+  mediaItemAdded = output<string>();
 
   constructor() {
     this.mediaItemForm.controls.title.valueChanges
@@ -112,6 +114,7 @@ export class AddMediaItemModalComponent implements AfterViewInit {
 
     this.mediaLibraryService.lookupByImdbId(result.imdbId)
       .pipe(
+        takeUntilDestroyed(this.destroyRef),
         switchMap((mediaItem) => this.mediaLibraryService.addItem(mediaItem)),
         finalize(() => this.addInFlightId.set(null))
       )
@@ -142,7 +145,10 @@ export class AddMediaItemModalComponent implements AfterViewInit {
     this.searchMessage.set('');
 
     this.mediaLibraryService.searchCatalog(title, this.kind ?? undefined)
-      .pipe(finalize(() => this.searchInFlight.set(false)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.searchInFlight.set(false))
+      )
       .subscribe({
         next: (results) => {
           if (searchId !== this.latestSearchId) {

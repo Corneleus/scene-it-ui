@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { Component, DestroyRef, Injector, OnInit, computed, inject, input, signal } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, finalize, forkJoin, of, switchMap } from 'rxjs';
 import { MediaItem, MediaKind } from '../../../models/media-item.model';
 import { AddMediaItemComponent } from '../add-media-item/add-media-item';
 import { MediaItemDetailsModalComponent } from '../media-item-details-modal/media-item-details-modal.component';
@@ -16,6 +17,9 @@ import { MediaLibraryService } from '../media-library.service';
 })
 export class MediaLibraryPageComponent implements OnInit {
   private readonly mediaLibraryService = inject(MediaLibraryService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly refreshVersion = signal(0);
 
   kind = input.required<MediaKind>();
   heroTitle = input.required<string>();
@@ -43,26 +47,35 @@ export class MediaLibraryPageComponent implements OnInit {
   readonly loadedCountText = computed(() => `${this.items().length} titles currently loaded`);
 
   ngOnInit(): void {
-    this.fetchItems();
-  }
+    toObservable(
+      computed(() => ({
+        kind: this.kind(),
+        refreshVersion: this.refreshVersion(),
+      })),
+      { injector: this.injector }
+    )
+      .pipe(
+        switchMap(({ kind }) => {
+          this.loading.set(true);
 
-  fetchItems(): void {
-    this.loading.set(true);
-    this.mediaLibraryService.listItems(this.kind()).subscribe({
-      next: (items) => {
+          return this.mediaLibraryService.listItems(kind).pipe(
+            catchError(() => {
+              this.setFeedback(this.loadErrorMessage(), 'error');
+              return of<MediaItem[]>([]);
+            }),
+            finalize(() => this.loading.set(false))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((items) => {
         this.items.set(items);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.setFeedback(this.loadErrorMessage(), 'error');
-        this.loading.set(false);
-      },
-    });
+      });
   }
 
   handleMediaItemAdded(title: string): void {
     this.setFeedback(`${title} was added to your library.`, 'success');
-    this.fetchItems();
+    this.refreshItems();
   }
 
   softDeleteItems(ids: number[]): void {
@@ -117,7 +130,7 @@ export class MediaLibraryPageComponent implements OnInit {
       next: () => {
         this.deleteInProgress.set(false);
         this.setFeedback(successMessage, 'success');
-        this.fetchItems();
+        this.refreshItems();
       },
       error: () => {
         this.setFeedback(errorMessage, 'error');
@@ -129,5 +142,9 @@ export class MediaLibraryPageComponent implements OnInit {
   private setFeedback(message: string, tone: 'success' | 'error'): void {
     this.feedbackMessage.set(message);
     this.feedbackTone.set(tone);
+  }
+
+  private refreshItems(): void {
+    this.refreshVersion.update((version) => version + 1);
   }
 }
