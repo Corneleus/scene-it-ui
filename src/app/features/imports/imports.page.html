@@ -183,14 +183,14 @@
         <div class="search-results" *ngIf="rowSearchResults()[i]?.length">
           <article
             class="result-card"
-            *ngFor="let movie of rowSearchResults()[i]; trackBy: trackByMovie"
-            (click)="selectSearchResult(i, movie)"
+            *ngFor="let mediaItem of rowSearchResults()[i]; trackBy: trackByMediaItem"
+            (click)="selectSearchResult(i, mediaItem)"
           >
             <div>
-              <strong>{{ movie.title }}</strong>
-              <small>{{ movie.year || 'Unknown year' }}</small>
+              <strong>{{ mediaItem.title }}</strong>
+              <small>{{ mediaItem.year || 'Unknown year' }}</small>
             </div>
-            <span>{{ movie.imdbId }}</span>
+            <span>{{ mediaItem.imdbId }}</span>
           </article>
         </div>
 
@@ -215,12 +215,12 @@
             </div>
           </div>
 
-          <article class="result-card lookup-result-card" *ngIf="rowLookupResults()[i] as lookupMovie">
+          <article class="result-card lookup-result-card" *ngIf="rowLookupResults()[i] as lookupResult">
             <div>
-              <strong>{{ lookupMovie.title }}</strong>
-              <small>{{ lookupMovie.year || 'Unknown year' }}</small>
+              <strong>{{ lookupResult.title }}</strong>
+              <small>{{ lookupResult.year || 'Unknown year' }}</small>
             </div>
-            <span>{{ lookupMovie.imdbId }}</span>
+            <span>{{ lookupResult.imdbId }}</span>
           </article>
 
           <p class="status-copy error lookup-message" *ngIf="rowLookupMessages()[i]">
@@ -291,7 +291,7 @@
               <td>{{ item.imdbId }}</td>
               <td>{{ item.title || 'Unknown' }}</td>
               <td>{{ item.year || 'Unknown' }}</td>
-              <td>{{ item.type || 'Movie' }}</td>
+              <td>{{ item.type || 'Unknown' }}</td>
               <td>{{ item.status }}</td>
               <td>{{ item.attemptCount }}</td>
             </tr>

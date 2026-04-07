@@ -203,12 +203,12 @@ export class ImportsPage {
       });
   }
 
-  selectSearchResult(index: number, movie: MediaItem): void {
+  selectSearchResult(index: number, mediaItem: MediaItem): void {
     this.itemsFormArray.at(index).patchValue({
-      imdbLookup: movie.imdbId,
-      imdbId: movie.imdbId,
-      title: movie.title,
-      searchQuery: movie.title,
+      imdbLookup: mediaItem.imdbId,
+      imdbId: mediaItem.imdbId,
+      title: mediaItem.title,
+      searchQuery: mediaItem.title,
     });
     this.rowSearchResults.update((state) => ({ ...state, [index]: [] }));
     this.clearLookupState(index);
@@ -377,8 +377,8 @@ export class ImportsPage {
     return run.importRunId;
   }
 
-  trackByMovie(_: number, movie: MediaItem): string {
-    return movie.imdbId;
+  trackByMediaItem(_: number, mediaItem: MediaItem): string {
+    return mediaItem.imdbId;
   }
 
   goToPreviousCurrentItemsPage(): void {
@@ -497,13 +497,13 @@ export class ImportsPage {
       .lookupByImdbId(imdbId)
       .pipe(finalize(() => this.rowSearchLoading.update((state) => ({ ...state, [index]: false }))))
       .subscribe({
-        next: (movie: MediaItem) => {
+        next: (mediaItem: MediaItem) => {
           group.patchValue({
-            imdbLookup: movie.imdbId,
-            imdbId: movie.imdbId,
-            title: movie.title,
+            imdbLookup: mediaItem.imdbId,
+            imdbId: mediaItem.imdbId,
+            title: mediaItem.title,
           });
-          this.rowLookupResults.update((state) => ({ ...state, [index]: movie }));
+          this.rowLookupResults.update((state) => ({ ...state, [index]: mediaItem }));
           this.rowLookupMessages.update((state) => ({ ...state, [index]: '' }));
         },
         error: (error: Error) => {

@@ -1,37 +1,39 @@
-<!-- Landing Page Content -->
-
 <div class="landing-container">
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <h1 class="hero-title">Welcome to SceneIt</h1>
-      <p class="hero-subtitle">
-        Discover your favorite movies, series, and video games and explore ratings, genres, and more.
-      </p>
-      <a routerLink="/movies" class="btn-primary">View Movies</a>
-    </section>
-  
-    <!-- Features Section -->
-    <section class="features">
-      <div class="feature">
-        <h2>Shared Library</h2>
-        <p>Browse movies, series, and video games from one metadata-rich catalog.</p>
-      </div>
-      <div class="feature">
-        <h2>Search & Filter</h2>
-        <p>Easily find movies by title, genre, or year using the search functionality.</p>
-      </div>
-      <div class="feature">
-        <h2>Responsive Design</h2>
-        <p>Enjoy a seamless experience on desktop, tablet, or mobile devices.</p>
-      </div>
-    </section>
-  
-    <!-- Call to Action Section -->
-    <section class="cta">
-      <h2>Ready to explore?</h2>
+  <section class="hero">
+    <h1 class="hero-title">Welcome to SceneIt</h1>
+    <p class="hero-subtitle">
+      Explore movies, series, and video games from one library and keep imports moving through the
+      same workflow.
+    </p>
+    <div class="hero-actions">
       <a routerLink="/movies" class="btn-primary">Browse Movies</a>
-    </section>
-  
-  </div>
-  
+      <a routerLink="/series" class="btn-secondary">Browse Series</a>
+      <a routerLink="/video-games" class="btn-secondary">Browse Video Games</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <h2>Shared Library</h2>
+      <p>Browse movies, series, and video games from one metadata-rich catalog.</p>
+    </div>
+    <div class="feature">
+      <h2>Search & Filter</h2>
+      <p>Find titles by name, genre, rating, and year without switching between separate tools.</p>
+    </div>
+    <div class="feature">
+      <h2>Imports Pipeline</h2>
+      <p>Queue IMDb IDs or dataset matches, then track pending, imported, duplicate, and failed runs.</p>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2>Ready to jump in?</h2>
+    <div class="cta-actions">
+      <a routerLink="/movies" class="btn-primary">Movies</a>
+      <a routerLink="/series" class="btn-primary">Series</a>
+      <a routerLink="/video-games" class="btn-primary">Video Games</a>
+      <a routerLink="/imports" class="btn-primary">Imports</a>
+    </div>
+  </section>
+</div>
