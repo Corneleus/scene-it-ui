@@ -1,0 +1,82 @@
+<div class="comics-page">
+  <header class="page-hero">
+    <p class="eyebrow">Comics</p>
+    <h1>Shape a pull list that stays easy to expand</h1>
+    <p class="page-copy">
+      Track issues, story arcs, or collected editions in one place, then keep reading notes and
+      ordering details alongside the list.
+    </p>
+
+    <div class="hero-meta">
+      <div class="meta-card">
+        <span class="meta-label">Issues</span>
+        <strong>{{ issueCount }}</strong>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Notes</span>
+        <strong>{{ comicsForm.controls.notes.value.trim() ? 'Started' : 'Empty' }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <form [formGroup]="comicsForm" class="content-grid">
+    <section class="panel issues-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Reading list</p>
+          <h2>Issue tracker</h2>
+        </div>
+        <button type="button" class="secondary-button" (click)="addIssue()">Add issue</button>
+      </div>
+
+      <label class="field">
+        <span>Series title</span>
+        <input type="text" formControlName="seriesTitle" placeholder="Ultimate Spider-Man" />
+      </label>
+
+      <div class="issue-list" formArrayName="issues">
+        <div class="issue-row" *ngFor="let issue of issuesFormArray.controls; let i = index; trackBy: trackByIndex">
+          <label class="field issue-field">
+            <span>Issue {{ i + 1 }}</span>
+            <input type="text" [formControlName]="i" placeholder="#12 Variant Cover" />
+          </label>
+
+          <button type="button" class="icon-button remove-button" (click)="removeIssue(i)">
+            Remove
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel notes-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Notes</p>
+          <h2>Reading and collection notes</h2>
+        </div>
+        <button type="button" class="ghost-button" (click)="resetComicsPlan()">Clear form</button>
+      </div>
+
+      <label class="field">
+        <span>Notes</span>
+        <textarea
+          formControlName="notes"
+          rows="14"
+          placeholder="Reading order:
+1. Main run
+2. Tie-in issues
+3. Deluxe edition pickup notes"
+        ></textarea>
+      </label>
+
+      <section class="preview-card">
+        <p class="eyebrow">Live preview</p>
+        <h3>{{ comicsForm.controls.seriesTitle.value.trim() || 'Untitled series plan' }}</h3>
+        <p>{{ issueCount }} issue{{ issueCount === 1 ? '' : 's' }} currently listed.</p>
+        <p class="preview-copy">
+          {{ comicsForm.controls.notes.value.trim() || 'Reading notes will appear here as you type.' }}
+        </p>
+      </section>
+    </section>
+  </form>
+</div>

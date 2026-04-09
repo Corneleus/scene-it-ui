@@ -1,0 +1,84 @@
+<div class="cookbook-page">
+  <header class="page-hero">
+    <p class="eyebrow">Cookbook</p>
+    <h1>Build a recipe sheet that stays easy to update</h1>
+    <p class="page-copy">
+      Capture ingredients as a growing list, keep preparation steps together, and shape a recipe
+      without fighting the form.
+    </p>
+
+    <div class="hero-meta">
+      <div class="meta-card">
+        <span class="meta-label">Items</span>
+        <strong>{{ ingredientCount }}</strong>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Preparation</span>
+        <strong>{{ recipeForm.controls.preparation.value.trim() ? 'Started' : 'Empty' }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <form [formGroup]="recipeForm" class="content-grid">
+    <section class="panel ingredients-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Recipe details</p>
+          <h2>Ingredients list</h2>
+        </div>
+        <button type="button" class="secondary-button" (click)="addItem()">Add item</button>
+      </div>
+
+      <label class="field">
+        <span>Recipe title</span>
+        <input type="text" formControlName="title" placeholder="Weeknight pasta bake" />
+      </label>
+
+      <div class="ingredient-list" formArrayName="items">
+        <div class="ingredient-row" *ngFor="let item of itemsFormArray.controls; let i = index; trackBy: trackByIndex">
+          <label class="field ingredient-field">
+            <span>Item {{ i + 1 }}</span>
+            <input type="text" [formControlName]="i" placeholder="2 cups broth" />
+          </label>
+
+          <button type="button" class="icon-button remove-button" (click)="removeItem(i)">
+            Remove
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel preparation-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Method</p>
+          <h2>Preparation</h2>
+        </div>
+        <button type="button" class="ghost-button" (click)="resetRecipe()">Clear form</button>
+      </div>
+
+      <label class="field">
+        <span>Preparation notes</span>
+        <textarea
+          formControlName="preparation"
+          rows="14"
+          placeholder="1. Prep the ingredients.
+2. Start the base.
+3. Finish and serve."
+        ></textarea>
+      </label>
+
+      <section class="preview-card">
+        <p class="eyebrow">Live preview</p>
+        <h3>{{ recipeForm.controls.title.value.trim() || 'Untitled recipe' }}</h3>
+        <p>
+          {{ ingredientCount }} ingredient{{ ingredientCount === 1 ? '' : 's' }} in the current
+          list.
+        </p>
+        <p class="preview-copy">
+          {{ recipeForm.controls.preparation.value.trim() || 'Preparation notes will appear here as you type.' }}
+        </p>
+      </section>
+    </section>
+  </form>
+</div>
