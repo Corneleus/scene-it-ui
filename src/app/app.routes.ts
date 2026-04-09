@@ -23,6 +23,16 @@ export const routes: Routes = [
       import('./features/video-games/video-games.page').then((module) => module.VideoGamesPage),
   },
   {
+    path: 'comics',
+    loadComponent: () =>
+      import('./features/comics/comics.page').then((module) => module.ComicsPage),
+  },
+  {
+    path: 'cookbook',
+    loadComponent: () =>
+      import('./features/cookbook/cookbook.page').then((module) => module.CookbookPage),
+  },
+  {
     path: 'imports',
     loadComponent: () =>
       import('./features/imports/imports.page').then((module) => module.ImportsPage),
